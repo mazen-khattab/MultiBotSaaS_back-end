@@ -5,5 +5,5 @@ using System;
 
 namespace SaaS.Application.Features.TargetGroups.Commands.Add
 {
-    public record AddGroupCommand(Guid UserId, AddGroupDto GroupDto) : IRequest<ApiResponse<Guid>>;
+    public record AddGroupCommand(Guid UserId, AddGroupDto GroupDto) : IRequest<ApiResponse<int>>;
 }

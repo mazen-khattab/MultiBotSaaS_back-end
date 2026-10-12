@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SaaS.Api.Extensions;
@@ -11,6 +12,7 @@ namespace SaaS.Api.Controllers.v1
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class LeadsController : ControllerBase
     {
         private readonly ISender _sender;

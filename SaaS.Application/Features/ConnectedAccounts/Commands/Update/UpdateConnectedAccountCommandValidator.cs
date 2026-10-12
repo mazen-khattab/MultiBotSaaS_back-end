@@ -23,7 +23,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Update
                 .Must(BeAValidStatus)
                 .WithMessage("Status must be a valid AccountStatus.");
 
-            RuleFor(x => x.AccountDto.EncryptedCookies)
+            RuleFor(x => x.AccountDto.Cookies)
                 .Must(IsValidJson).WithMessage("Cookies must be valid JSON.");
         }
 

@@ -4,5 +4,5 @@ using System.Text;
 
 namespace SaaS.Application.Common.Dtos
 {
-    public record UpdateConnectedAccountDto(string DisplayName, string Platform, string EncryptedCookies, string Status, bool IsActive);
+    public record UpdateConnectedAccountDto(string DisplayName, string Platform, string Cookies, string Status, bool IsActive);
 }

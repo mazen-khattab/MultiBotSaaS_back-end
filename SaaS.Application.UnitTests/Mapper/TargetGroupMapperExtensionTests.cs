@@ -117,7 +117,7 @@ namespace SaaS.Application.UnitTests.Mapper
             detailsDto.Should().NotBeNull();
             detailsDto.Id.Should().Be(5);
             detailsDto.GroupName.Should().Be("Developers Hub");
-            detailsDto.GroupURL.Should().Be("https://example.com/groups/devs");
+            detailsDto.GroupUrl.Should().Be("https://example.com/groups/devs");
             detailsDto.ConfigJson.Should().Be("{\"maxMembers\": 1000}");
             detailsDto.IsActive.Should().BeTrue();
             detailsDto.RelatedLeadsCount.Should().Be(150);

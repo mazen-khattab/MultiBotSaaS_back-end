@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +11,7 @@ using SaaS.Application.Features.ConnectedAccounts.Commands.Delete;
 using SaaS.Application.Features.ConnectedAccounts.Commands.Update;
 using SaaS.Application.Features.ConnectedAccounts.Queries.GetAll;
 using SaaS.Application.Features.ConnectedAccounts.Queries.GetById;
+using SaaS.Application.Features.ConnectedAccounts.Queries.GetEligible;
 using SaaS.Domain.Entities;
 using System.Security.Claims;
 
@@ -49,6 +50,37 @@ namespace SaaS.Api.Controllers.v1
             }
 
             int statusCode = result!.ErrorType.ToHttpStatusCode();
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result?.Message ?? "Failure during operation.",
+                Path = HttpContext.Request.Path,
+                Method = HttpContext.Request.Method,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return StatusCode(statusCode, errorResponse);
+        }
+
+        /// <summary>
+        /// Get eligible active connected accounts for a specific bot.
+        /// </summary>
+        [HttpGet("eligible/{botId}")]
+        public async Task<ActionResult<object>> GetEligible([FromRoute] int botId)
+        {
+            var userId = GetUserId();
+
+            var query = new GetEligibleConnectedAccountsQuery(userId, botId);
+            var result = await _sender.Send(query);
+
+            if (result is not null && result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            int statusCode = result?.ErrorType.ToHttpStatusCode() ?? StatusCodes.Status404NotFound;
 
             var errorResponse = new ApiErrorResponse
             {
@@ -135,7 +167,9 @@ namespace SaaS.Api.Controllers.v1
         [HttpPut("{id}")]
         public async Task<ActionResult<object>> Update(int id, [FromBody] UpdateConnectedAccountDto requestDto)
         {
-            var command = new UpdateConnectedAccountCommand(id, requestDto);
+            var userId = GetUserId();
+
+            var command = new UpdateConnectedAccountCommand(userId, id, requestDto);
             var result = await _sender.Send(command);
 
             if (result is not null && result.IsSuccess)
@@ -166,7 +200,9 @@ namespace SaaS.Api.Controllers.v1
         [HttpDelete("{id}")]
         public async Task<ActionResult<object>> Delete(int id)
         {
-            var command = new DeleteConnectedAccountCommand(id);
+            var userId = GetUserId();
+
+            var command = new DeleteConnectedAccountCommand(userId, id);
             var result = await _sender.Send(command);
 
             if (result is not null && result.IsSuccess)

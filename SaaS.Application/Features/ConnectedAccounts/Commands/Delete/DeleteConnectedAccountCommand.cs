@@ -6,5 +6,5 @@ using System.Text;
 
 namespace SaaS.Application.Features.ConnectedAccounts.Commands.Delete
 {
-    public record DeleteConnectedAccountCommand(int Id) : IRequest<ApiResponse<string>>;
+    public record DeleteConnectedAccountCommand(Guid UserId, int Id) : IRequest<ApiResponse<string>>;
 }

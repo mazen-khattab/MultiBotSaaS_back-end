@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using SaaS.Application.Common.Interfaces;
+using SaaS.Domain.Constants;
 using SaaS.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace SaaS.Infrastructure.DataSeeding
                     Name = "Facebook Group Members Scraper",
                     Description = "Scrapes members from Facebook groups.",
                     CurrentPrice = 0,
-                    UiModuleCode = "FB-MEMBERS-SCRAPER",
+                    UiModuleCode = UiModuleCodes.FbMembersScraper,
                     CooldownMinutes = 180,
                     IsActive = true
                 }, 
@@ -29,7 +30,7 @@ namespace SaaS.Infrastructure.DataSeeding
                     Name = "Facebook Group Posts Scraper",
                     Description = "Scrapes posts from Facebook groups.",
                     CurrentPrice = 0,
-                    UiModuleCode = "FB-POSTS-SCRAPER",
+                    UiModuleCode = UiModuleCodes.FbPostsScraper,
                     CooldownMinutes = 180,
                     IsActive = true
                 },
@@ -38,7 +39,7 @@ namespace SaaS.Infrastructure.DataSeeding
                     Name = "Facebook Group Members With Messages Scraper",
                     Description = "Scrapes members and messages from Facebook groups.",
                     CurrentPrice = 0,
-                    UiModuleCode = "FB-MEMBERS-MESSAGES-SCRAPER",
+                    UiModuleCode = UiModuleCodes.FbMembersMessagesScraper,
                     CooldownMinutes = 180,
                     IsActive = true
                 }
@@ -50,9 +51,8 @@ namespace SaaS.Infrastructure.DataSeeding
                 {
                     context.Bots.Add(bot);
                 }
+                await context.SaveChangesAsync();
             }
-
-            await context.SaveChangesAsync();
         }
 
     }

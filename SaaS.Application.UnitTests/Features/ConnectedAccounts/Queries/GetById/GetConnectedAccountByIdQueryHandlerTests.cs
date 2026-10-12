@@ -87,7 +87,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             result.Data.DisplayName.Should().Be("Main Facebook Account");
             result.Data.Platform.Should().Be("Facebook");
             result.Data.IsActive.Should().BeTrue();
-            result.Data.ExpAt.Should().Be(expireDate);
+            result.Data.ExpiredAt.Should().Be(expireDate);
             result.Data.RelatedLeadsCount.Should().Be(2);
             result.Data.RunsCount.Should().Be(1);
             result.Data.MaskedCookies.Should().EndWith("1234");

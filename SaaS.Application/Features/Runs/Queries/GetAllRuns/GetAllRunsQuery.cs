@@ -1,0 +1,15 @@
+using System;
+using MediatR;
+using SaaS.Application.Common.Dtos;
+using SaaS.Application.Common.Models;
+
+namespace SaaS.Application.Features.Runs.Queries.GetAllRuns
+{
+    public record GetAllRunsQuery(
+        Guid UserId,
+        int? BotId = null,
+        int PageNumber = 1,
+        int PageSize = 10,
+        string? StatusFilter = null
+    ) : IRequest<ApiResponse<PaginatedResult<RunDto>>>;
+}

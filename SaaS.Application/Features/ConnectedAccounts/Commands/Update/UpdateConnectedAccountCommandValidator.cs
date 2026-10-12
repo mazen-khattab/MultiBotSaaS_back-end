@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using SaaS.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,10 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Update
     {
         public UpdateConnectedAccountCommandValidator()
         {
+            RuleFor(x => x.UserId)
+                .NotEmpty().WithMessage("UserId is required.")
+                .NotEqual(Guid.Empty).WithMessage("A valid user Id must be provided.");
+
             RuleFor(x => x.Id)
                 .NotEmpty()
                 .WithMessage("Connected account Id is required.")

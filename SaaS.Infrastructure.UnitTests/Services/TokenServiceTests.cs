@@ -232,17 +232,17 @@ namespace SaaS.Infrastructure.UnitTests.Services
             accessCookie.Should().NotBeNull();
             accessCookie.Should().Contain("httponly");
             accessCookie.Should().Contain("secure");
-            accessCookie.Should().Contain("samesite=strict");
+            accessCookie.Should().Contain("samesite=none");
 
             var refreshCookie = setCookieHeaders.FirstOrDefault(h => h!.Contains(TokenService.RefreshTokenCookieName));
             refreshCookie.Should().NotBeNull();
             refreshCookie.Should().Contain("httponly");
             refreshCookie.Should().Contain("secure");
-            refreshCookie.Should().Contain("samesite=strict");
+            refreshCookie.Should().Contain("samesite=none");
         }
 
         [Fact]
-        public void SetAuthCookies_ShouldNotSetSecureFlag_InDevelopment()
+        public void SetAuthCookies_ShouldSetSecureFlag_InDevelopment()
         {
             // Arrange
             _mockEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
@@ -260,7 +260,8 @@ namespace SaaS.Infrastructure.UnitTests.Services
 
             var accessCookie = setCookieHeaders.FirstOrDefault(h => h!.Contains(TokenService.AccessTokenCookieName));
             accessCookie.Should().NotBeNull();
-            accessCookie.Should().NotContain("secure");
+            accessCookie.Should().Contain("secure");
+            accessCookie.Should().Contain("samesite=none");
         }
 
         [Fact]

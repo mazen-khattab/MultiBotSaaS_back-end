@@ -60,7 +60,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
 
             var handler = new UpdateConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object);
             var dto = new UpdateConnectedAccountDto("New Display Name", "Instagram", newRawCookies, "Active", true);
-            var command = new UpdateConnectedAccountCommand(account.Id, dto);
+            var command = new UpdateConnectedAccountCommand(userId, account.Id, dto);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -110,7 +110,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
 
             var handler = new UpdateConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object);
             var dto = new UpdateConnectedAccountDto("Updated Name", "LinkedIn", emptyCookies!, "Active", false);
-            var command = new UpdateConnectedAccountCommand(account.Id, dto);
+            var command = new UpdateConnectedAccountCommand(userId, account.Id, dto);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -138,7 +138,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             using var dbContext = CreateInMemoryDbContext();
             var handler = new UpdateConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object);
             var dto = new UpdateConnectedAccountDto("Name", "Platform", "cookies", "Active", true);
-            var command = new UpdateConnectedAccountCommand(999, dto);
+            var command = new UpdateConnectedAccountCommand(Guid.NewGuid(), 999, dto);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -147,7 +147,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeFalse();
             result.ErrorType.Should().Be(ErrorType.NotFound);
-            result.Message.Should().Be("Connected account with ID 999 not found.");
+            result.Message.Should().Be("Connected account not found.");
         }
     }
 }

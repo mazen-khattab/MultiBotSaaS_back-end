@@ -7,5 +7,5 @@ using System.Text;
 
 namespace SaaS.Application.Features.ConnectedAccounts.Commands.Update
 {
-    public record UpdateConnectedAccountCommand(int Id, UpdateConnectedAccountDto AccountDto) : IRequest<ApiResponse<Guid>>;
+    public record UpdateConnectedAccountCommand(Guid UserId, int Id, UpdateConnectedAccountDto AccountDto) : IRequest<ApiResponse<Guid>>;
 }

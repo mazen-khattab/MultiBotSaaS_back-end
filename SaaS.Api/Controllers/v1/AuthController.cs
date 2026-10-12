@@ -10,6 +10,7 @@ using SaaS.Application.Features.Auth.Commands.User;
 using SaaS.Application.Features.Auth.Commands.User.Login;
 using SaaS.Application.Features.Auth.Commands.User.Logout;
 using SaaS.Application.Features.Auth.Commands.User.RefreshToken;
+using SaaS.Application.Features.Auth.Queries.User.GetCurrentUser;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -111,6 +112,52 @@ namespace SaaS.Api.Controllers.v1
         /// Sends LogoutUserCommand via MediatR.
         /// Cookie cleanup is handled inside command/token generator.
         /// </summary>
+        /// <summary>
+        /// Get the currently authenticated user's profile.
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<AuthLoginResponseDto>> GetMe()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "User";
+            var query = new GetCurrentUserQuery(userId);
+            var result = await _sender.Send(query);
+
+            if (result is not null && result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            int statusCode = result?.ErrorType.ToHttpStatusCode() ?? StatusCodes.Status401Unauthorized;
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result?.Message ?? "Unauthorized",
+                Path = "api/v1/auth/me",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return StatusCode(statusCode, errorResponse);
+        }
+
+        /// <summary>
+        /// User logout endpoint.
+        /// Requires [Authorize] attribute.
+        /// Extracts UserId from claims (ClaimTypes.NameIdentifier).
+        /// Reads refresh token from HTTP-Only cookie.
+        /// Sends LogoutUserCommand via MediatR.
+        /// Cookie cleanup is handled inside command/token generator.
+        /// </summary>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -122,7 +169,7 @@ namespace SaaS.Api.Controllers.v1
                 return BadRequest("Invalid user ID in claims.");
             }
 
-            var refreshToken = Request.Cookies["refreshToken"];
+            var refreshToken = _tokenService.GetCookiesRefreshToken();
 
             var command = new LogoutUserCommand(userId, refreshToken);
             var result = await _sender.Send(command);

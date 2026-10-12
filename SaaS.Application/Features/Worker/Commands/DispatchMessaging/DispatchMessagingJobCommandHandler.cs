@@ -119,11 +119,11 @@ namespace SaaS.Application.Features.Worker.Commands.DispatchMessaging
                 return ApiResponse<DispatchMessagingResultDto>.Failure("One or more leads are invalid or do not belong to the user/bot.", ErrorType.ValidationError);
             }
 
-            //if (leads.Any(l => !string.Equals(l.Status, LeadStatus.PENDING.ToDbString(), StringComparison.OrdinalIgnoreCase)))
-            //{
-            //    _logger.LogWarning("Lead validation failed. One or more leads are not in PENDING state for UserId: {UserId}, BotId: {BotId}.", request.UserId, request.BotId);
-            //    return ApiResponse<DispatchMessagingResultDto>.Failure("One or more leads are not in Pending state.", ErrorType.ValidationError);
-            //}
+            if (leads.Any(l => !string.Equals(l.Status, LeadStatus.PENDING.ToDbString(), StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger.LogWarning("Lead validation failed. One or more leads are not in PENDING state for UserId: {UserId}, BotId: {BotId}.", request.UserId, request.BotId);
+                return ApiResponse<DispatchMessagingResultDto>.Failure("One or more leads are not in Pending state.", ErrorType.ValidationError);
+            }
 
             // Set Account Status to BUSY
             account.Status = AccountStatus.BUSY.ToDbString();

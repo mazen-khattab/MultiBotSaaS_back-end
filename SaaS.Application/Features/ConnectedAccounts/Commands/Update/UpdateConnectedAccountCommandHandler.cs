@@ -29,11 +29,11 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Update
 
             var entity = await _context.ConnectedAccounts
                 .Include(ca => ca.Cookie)
-                .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId, cancellationToken);
 
             if (entity is null)
             {
-                return ApiResponse<Guid>.Failure($"Connected account with ID {request.Id} not found.", ErrorType.NotFound);
+                return ApiResponse<Guid>.Failure($"Connected account not found.", ErrorType.NotFound);
             }
 
             entity.DisplayName = accountInfo.DisplayName;

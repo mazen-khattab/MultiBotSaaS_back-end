@@ -160,7 +160,7 @@ namespace SaaS.Application.UnitTests.Mapper
             detailsDto.Id.Should().Be(10);
             detailsDto.DisplayName.Should().Be("Details Account");
             detailsDto.Platform.Should().Be("Twitter");
-            detailsDto.ExpAt.Should().Be(expireDate);
+            detailsDto.ExpiredAt.Should().Be(expireDate);
             detailsDto.IsActive.Should().BeTrue();
             detailsDto.RelatedLeadsCount.Should().Be(25);
             detailsDto.RunsCount.Should().Be(5);

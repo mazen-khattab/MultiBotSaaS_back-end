@@ -1,4 +1,4 @@
-﻿using SaaS.Application.Common.Dtos;
+using SaaS.Application.Common.Dtos;
 using SaaS.Application.Common.Helpers;
 using SaaS.Application.Common.Interfaces;
 using SaaS.Domain.Entities;
@@ -43,7 +43,7 @@ namespace SaaS.Application.Mapper
                 DisplayName: account.DisplayName,
                 MaskedCookies: Helper.MaskValue(account.Cookie.EncryptedCookies, encryptionService),
                 Platform: account.Platform,
-                ExpAt: account.Cookie.CookiesExpireDate,
+                ExpiredAt: account.Cookie.CookiesExpireDate,
                 IsActive: account.IsActive,
                 RelatedLeadsCount: relatedLeadsCount,
                 RunsCount: runsCount

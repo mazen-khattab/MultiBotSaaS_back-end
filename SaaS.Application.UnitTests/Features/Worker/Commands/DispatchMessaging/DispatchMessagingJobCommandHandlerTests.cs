@@ -373,7 +373,7 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.DispatchMessaging
             _encryptionServiceMock.Setup(e => e.Decrypt("encrypted")).Returns("[{\"cookie\":1}]");
 
             _networkClientMock
-                .Setup(n => n.PostJsonAsync("/api/worker/dispatch-messaging", It.IsAny<object>(), ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
+                .Setup(n => n.PostJsonAsync("/dispatch-messaging", It.IsAny<object>(), ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(NetworkResult.Ok(200, "{\"accepted\":true}"));
 
             var handler = new DispatchMessagingJobCommandHandler(
@@ -397,7 +397,7 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.DispatchMessaging
 
             var job = await dbContext.Jobs.FirstOrDefaultAsync(j => j.UserId == userId);
             Assert.NotNull(job);
-            Assert.Equal(JobStatus.PROCESSING.ToDbString(), job.Status);
+            Assert.Equal(JobStatus.PENDING.ToDbString(), job.Status);
             Assert.Equal(JobType.MESSAGING.ToDbString(), job.Type);
         }
 
@@ -440,7 +440,7 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.DispatchMessaging
             _encryptionServiceMock.Setup(e => e.Decrypt("encrypted")).Returns("[{\"cookie\":1}]");
 
             _networkClientMock
-                .Setup(n => n.PostJsonAsync("/api/worker/dispatch-messaging", It.IsAny<object>(), ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
+                .Setup(n => n.PostJsonAsync("/dispatch-messaging", It.IsAny<object>(), ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(NetworkResult.Fail(500, "Node worker crashed"));
 
             var handler = new DispatchMessagingJobCommandHandler(
@@ -505,7 +505,7 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.DispatchMessaging
             _encryptionServiceMock.Setup(e => e.Decrypt("encrypted")).Returns("[{\"cookie\":1}]");
 
             _networkClientMock
-                .Setup(n => n.PostJsonAsync("/api/worker/dispatch-messaging", It.IsAny<object>(), ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
+                .Setup(n => n.PostJsonAsync("/dispatch-messaging", It.IsAny<object>(), ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
             var handler = new DispatchMessagingJobCommandHandler(

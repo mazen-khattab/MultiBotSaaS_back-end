@@ -11,6 +11,7 @@ namespace SaaS.Domain.Extensions
             RunStatus.PENDING => "Pending",
             RunStatus.COMPLETED => "Completed",
             RunStatus.FAILED => "Failed",
+            RunStatus.CANCELLED => "Cancelled",
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unmapped RunStatus value.")
         };
 
@@ -20,6 +21,7 @@ namespace SaaS.Domain.Extensions
             "Pending" => RunStatus.PENDING,
             "Completed" => RunStatus.COMPLETED,
             "Failed" => RunStatus.FAILED,
+            "Cancelled" => RunStatus.CANCELLED,
             _ => throw new ArgumentOutOfRangeException(nameof(dbValue), dbValue, "Unrecognized RunStatus value from DB.")
         };
     }

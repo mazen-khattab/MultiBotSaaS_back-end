@@ -21,4 +21,8 @@
     <InternalsVisibleTo Include="SaaS.Application.UnitTests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Auth\Queries\Admin\GetCurrentAdmin\" />
+  </ItemGroup>
+
 </Project>

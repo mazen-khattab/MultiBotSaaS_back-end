@@ -23,7 +23,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Delete
         public async Task<ApiResponse<string>> Handle(DeleteConnectedAccountCommand request, CancellationToken cancellationToken)
         {
             var entity = await _context.ConnectedAccounts
-                .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId, cancellationToken);
 
             if (entity is null)
             {

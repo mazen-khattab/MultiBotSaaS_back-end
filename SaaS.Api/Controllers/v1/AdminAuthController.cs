@@ -5,11 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using SaaS.Api.Extensions;
 using SaaS.Application.Common.Dtos;
+using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Models;
 using SaaS.Application.Features.Auth.Commands.Admin;
 using SaaS.Application.Features.Auth.Commands.Admin.Login;
 using SaaS.Application.Features.Auth.Commands.Admin.Logout;
 using SaaS.Application.Features.Auth.Commands.Admin.RefreshToken;
+using SaaS.Application.Features.Auth.Queries.Admin.GetCurrentAdmin;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -21,10 +23,12 @@ namespace SaaS.Api.Controllers.v1
     public class AdminAuthController : ControllerBase
     {
         private readonly ISender _sender;
+        private readonly ITokenService _tokenService;
 
-        public AdminAuthController(ISender sender)
+        public AdminAuthController(ISender sender, ITokenService tokenService)
         {
             _sender = sender;
+            _tokenService = tokenService;
         }
 
         /// <summary>
@@ -67,7 +71,7 @@ namespace SaaS.Api.Controllers.v1
         [HttpPost("refresh")]
         public async Task<ActionResult<AuthLoginResponseDto>> Refresh()
         {
-            var refreshToken = Request.Cookies["refreshToken"];
+            var refreshToken = _tokenService.GetCookiesRefreshToken();
 
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
@@ -98,6 +102,43 @@ namespace SaaS.Api.Controllers.v1
         }
 
         /// <summary>
+        /// Get the currently authenticated admin's profile.
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<AuthLoginResponseDto>> GetMe()
+        {
+            var adminIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(adminIdString, out var adminId))
+            {
+                return Unauthorized();
+            }
+
+            var query = new GetCurrentAdminQuery(adminId);
+            var result = await _sender.Send(query);
+
+            if (result is not null && result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            int statusCode = result?.ErrorType.ToHttpStatusCode() ?? StatusCodes.Status401Unauthorized;
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result?.Message ?? "Unauthorized",
+                Path = "api/v1/admin/auth/me",
+                Method = HttpMethods.Get,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return StatusCode(statusCode, errorResponse);
+        }
+
+        /// <summary>
         /// Admin logout endpoint.
         /// Requires [Authorize] attribute.
         /// Extracts AdminId from claims (ClaimTypes.NameIdentifier).
@@ -116,7 +157,7 @@ namespace SaaS.Api.Controllers.v1
                 return BadRequest("Invalid admin ID in claims.");
             }
 
-            var refreshToken = Request.Cookies["refreshToken"];
+            var refreshToken = _tokenService.GetCookiesRefreshToken();
 
             var command = new LogoutAdminCommand(adminId, refreshToken);
             var result = await _sender.Send(command);

@@ -9,6 +9,7 @@ namespace SaaS.Domain.Enums
         RUNNING,
         PENDING,
         COMPLETED,
-        FAILED
+        FAILED,
+        CANCELLED
     }
 }

@@ -105,7 +105,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetById
 
             Assert.Equal(groupId, result.Data.Id);
             Assert.Equal("Marketing Agency", result.Data.GroupName);
-            Assert.Equal("https://example.com/agency", result.Data.GroupURL);
+            Assert.Equal("https://example.com/agency", result.Data.GroupUrl);
             Assert.Equal("{\"filter\": \"active\"}", result.Data.ConfigJson);
             Assert.True(result.Data.IsActive);
             Assert.Equal(2, result.Data.RelatedLeadsCount);

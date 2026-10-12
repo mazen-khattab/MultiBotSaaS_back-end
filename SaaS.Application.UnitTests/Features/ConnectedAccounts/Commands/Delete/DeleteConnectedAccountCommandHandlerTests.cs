@@ -28,8 +28,10 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Delete
         {
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
+            var userId = Guid.NewGuid();
             var account = new ConnectedAccount
             {
+                UserId = userId,
                 DisplayName = "To Be Deleted",
                 Platform = "Facebook",
                 IsActive = true
@@ -38,7 +40,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Delete
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new DeleteConnectedAccountCommandHandler(dbContext);
-            var command = new DeleteConnectedAccountCommand(account.Id);
+            var command = new DeleteConnectedAccountCommand(userId, account.Id);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -59,7 +61,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Delete
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
             var handler = new DeleteConnectedAccountCommandHandler(dbContext);
-            var command = new DeleteConnectedAccountCommand(999);
+            var command = new DeleteConnectedAccountCommand(Guid.NewGuid(), 999);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);

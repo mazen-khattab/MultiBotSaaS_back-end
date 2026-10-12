@@ -137,7 +137,7 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.ProcessJobTimeouts
 
             // Worker responds that it's still running
             var workerResponse = NetworkResult.Ok(200, "{ \"status\": \"processing\" }");
-            _networkClientMock.Setup(n => n.GetAsync($"jobs/status?job_id={job.Id}", ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
+            _networkClientMock.Setup(n => n.GetAsync($"jobs/{job.Id}/status", ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(workerResponse);
 
             var handler = CreateHandler(dbContext);

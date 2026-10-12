@@ -11,7 +11,7 @@ using SaaS.Domain.Enums;
 
 namespace SaaS.Application.Features.TargetGroups.Commands.Add
 {
-    public class AddGroupCommandHandler : IRequestHandler<AddGroupCommand, ApiResponse<Guid>>
+    public class AddGroupCommandHandler : IRequestHandler<AddGroupCommand, ApiResponse<int>>
     {
         private readonly IAppDbContext _context;
         private readonly IUserBotService _userBotService;
@@ -19,7 +19,7 @@ namespace SaaS.Application.Features.TargetGroups.Commands.Add
         public AddGroupCommandHandler(IAppDbContext context, IUserBotService userBotService) 
             => (_context, _userBotService) = (context, userBotService);
 
-        public async Task<ApiResponse<Guid>> Handle(AddGroupCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<int>> Handle(AddGroupCommand request, CancellationToken cancellationToken)
         {
             var dto = request.GroupDto;
 
@@ -27,7 +27,7 @@ namespace SaaS.Application.Features.TargetGroups.Commands.Add
 
             if (!hasBot)
             {
-                return ApiResponse<Guid>.Failure("User or bot not found", ErrorType.NotFound);
+                return ApiResponse<int>.Failure("User or bot not found", ErrorType.NotFound);
             }
 
             var entity = new TargetGroup
@@ -43,7 +43,7 @@ namespace SaaS.Application.Features.TargetGroups.Commands.Add
             await _context.TargetGroups.AddAsync(entity, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return ApiResponse<Guid>.Success(request.UserId, "Target group has been added successfully");
+            return ApiResponse<int>.Success(entity.Id, "Target group has been added successfully");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SaaS.Api.Extensions;
@@ -15,6 +16,7 @@ namespace SaaS.Api.Controllers.v1
 {
     [Route("api/v1/[controller]")]
     [ApiController]
+    [Authorize]
     public class TargetGroupsController : ControllerBase
     {
         private readonly ISender _sender;

@@ -62,6 +62,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Add
             // Arrange
             using var dbContext = CreateDbContext();
             var userId = Guid.NewGuid();
+            var groupId = 1;
             var botId = 2;
 
             _userBotServiceMock
@@ -77,7 +78,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Add
 
             // Assert
             Assert.True(result.IsSuccess);
-            Assert.Equal(userId, result.Data);
+            Assert.Equal(groupId, result.Data);
             Assert.Equal("Target group has been added successfully", result.Message);
 
             var group = await dbContext.TargetGroups.FirstOrDefaultAsync(g => g.UserId == userId);

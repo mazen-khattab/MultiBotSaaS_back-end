@@ -82,6 +82,7 @@ try
         var httpContextAccessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
 
         await UsersSeeding.SeedingAsync(DbContext, passwordHasher, httpContextAccessor);
+        await BotsSeeding.SeedingAsync(DbContext);
     }
 }
 catch (Exception ex)

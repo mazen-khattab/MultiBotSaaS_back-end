@@ -180,8 +180,8 @@ namespace SaaS.Infrastructure.Services
             // Driven by ASPNETCORE_ENVIRONMENT, set automatically by the runtime -
             // unlike a config key, there's no way for this to be silently missing
             // and defaulting to false in a real production deployment.
-            Secure = _env.IsProduction(),
-            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            SameSite = SameSiteMode.None,
             Expires = expires
         };
     }

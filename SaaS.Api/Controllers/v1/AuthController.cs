@@ -22,11 +22,13 @@ namespace SaaS.Api.Controllers.v1
     {
         private readonly ISender _sender;
         private readonly ITokenService _tokenService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ISender sender, ITokenService tokenService)
+        public AuthController(ISender sender, ITokenService tokenService, ILogger<AuthController> logger)
         {
             _sender = sender;
             _tokenService = tokenService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -69,7 +71,9 @@ namespace SaaS.Api.Controllers.v1
         [HttpPost("refresh")]
         public async Task<ActionResult<AuthLoginResponseDto>> Refresh()
         {
+            _logger.LogInformation("Attempting to refresh token for user.");
             var refreshToken = _tokenService.GetCookiesRefreshToken();
+            _logger.LogInformation("Refresh token retrieved from cookies: {RefreshToken}", refreshToken);
 
             if (string.IsNullOrWhiteSpace(refreshToken))
             {

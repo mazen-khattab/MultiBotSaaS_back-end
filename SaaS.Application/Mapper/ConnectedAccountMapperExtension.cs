@@ -31,11 +31,11 @@ namespace SaaS.Application.Mapper
             return [.. accounts.Select(account => account.ToDto())];
         }
 
-        public static ConnectedAccountDetailsDto ToDetailsDto(this ConnectedAccount account, IEncryptionService encryptionService,int relatedLeadsCount, int runsCount)
+        public static ConnectedAccountDetailsDto ToDetailsDto(this ConnectedAccount account, IEncryptionService encryptionService,int relatedLeadsCount, int scrapesCount)
         {
             ArgumentNullException.ThrowIfNull(account, nameof(account));
             ArgumentOutOfRangeException.ThrowIfNegative(relatedLeadsCount);
-            ArgumentOutOfRangeException.ThrowIfNegative(runsCount);
+            ArgumentOutOfRangeException.ThrowIfNegative(scrapesCount);
 
             return new ConnectedAccountDetailsDto
             (
@@ -47,7 +47,7 @@ namespace SaaS.Application.Mapper
                 IsActive: account.IsActive,
                 Status: account.Status,
                 RelatedLeadsCount: relatedLeadsCount,
-                RunsCount: runsCount
+                ScrapesCount: scrapesCount
             );
         }
     }

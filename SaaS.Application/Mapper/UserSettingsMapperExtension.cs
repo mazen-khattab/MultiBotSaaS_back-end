@@ -14,18 +14,20 @@ namespace SaaS.Application.Mapper
         {
             if (settings == null)
             {
-                return new UserSettingsDto(false, string.Empty, false, string.Empty, 0);
+                return new UserSettingsDto(false, string.Empty, false, string.Empty, 0, null, null);
             }
 
-            var hasOpenAi = !string.IsNullOrWhiteSpace(settings.ScraperApiTokenEncrypted);
-            var hasApify = !string.IsNullOrWhiteSpace(settings.AIApiKeyEncrypted);
+            var hasAiKey = !string.IsNullOrWhiteSpace(settings.AIApiKeyEncrypted);
+            var hasScraperToken = !string.IsNullOrWhiteSpace(settings.ScraperApiTokenEncrypted);
 
             return new UserSettingsDto(
-                HasAIApiKey: hasOpenAi,
-                MaskedAIApiKey: Helper.MaskValue(settings.ScraperApiTokenEncrypted, encryptionService),
-                HasScraperToken: hasApify,
-                MaskedScraperToken: Helper.MaskValue(settings.AIApiKeyEncrypted, encryptionService),
-                DailyLeadLimit: settings.DailyMessageLimit
+                HasAIApiKey: hasAiKey,
+                MaskedAIApiKey: Helper.MaskValue(settings.AIApiKeyEncrypted, encryptionService),
+                HasScraperToken: hasScraperToken,
+                MaskedScraperToken: Helper.MaskValue(settings.ScraperApiTokenEncrypted, encryptionService),
+                DailyLeadLimit: settings.DailyMessageLimit,
+                CompanyName: settings.CompanyName,
+                CompanyPitch: settings.CompanyPitch
             );
         }
     }

@@ -12,7 +12,7 @@ namespace SaaS.Domain.Entities
         public long Id { get; set; }
         public Guid UserId { get; set; }
         public int? BotId { get; set; }
-        //public int RunId { get; set; }
+        //public int ScrapeId { get; set; }
         public string Type { get; set; } = string.Empty; // e.g. "ScrapeGroup", "SendDm"
         public string PayloadJson { get; set; } = "{}";
 
@@ -24,7 +24,7 @@ namespace SaaS.Domain.Entities
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
         // Navigation Properties
-        //public Run Run { get; set; } = null!;
+        //public Scrape Scrape { get; set; } = null!;
         public User User { get; set; } = null!;
     }
 }

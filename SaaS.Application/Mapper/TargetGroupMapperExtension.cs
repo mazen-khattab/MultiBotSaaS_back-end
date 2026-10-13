@@ -1,4 +1,4 @@
-﻿using SaaS.Application.Common.Dtos;
+using SaaS.Application.Common.Dtos;
 using SaaS.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace SaaS.Application.Mapper
             return [.. targetGroups.Select(tg => tg.ToDto())];
         }
 
-        public static GroupDetailsDto ToDetailsDto(this TargetGroup targetGroup, int leadsCount, int runsCount)
+        public static GroupDetailsDto ToDetailsDto(this TargetGroup targetGroup, int leadsCount, int scrapesCount)
         {
             ArgumentNullException.ThrowIfNull(targetGroup, nameof(targetGroup));
 
@@ -38,7 +38,7 @@ namespace SaaS.Application.Mapper
                 targetGroup.ConfigJson,
                 targetGroup.IsActive,
                 leadsCount,
-                runsCount
+                scrapesCount
             );
         }
 

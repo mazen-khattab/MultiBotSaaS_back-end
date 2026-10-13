@@ -29,7 +29,7 @@ namespace SaaS.Application.Features.Settings.Queries
 
             if (settings == null)
             {
-                var userSettings = new UserSettingsDto(false, string.Empty, false, string.Empty, 0);
+                var userSettings = new UserSettingsDto(false, string.Empty, false, string.Empty, 0, null, null);
                 return ApiResponse<UserSettingsDto>.Success(userSettings, "No settings found for the user.");
             }
 

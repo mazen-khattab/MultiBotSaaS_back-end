@@ -15,7 +15,7 @@ namespace SaaS.Application.UnitTests.Common
         public DbSet<ConnectedAccount> ConnectedAccounts { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Bot> Bots { get; set; } = null!;
-        public DbSet<Run> Runs { get; set; } = null!;
+        public DbSet<Scrape> Scrapes { get; set; } = null!;
         public DbSet<Lead> Leads { get; set; } = null!;
         public DbSet<TargetGroup> TargetGroups { get; set; } = null!;
         public DbSet<UserSetting> UserSettings { get; set; } = null!;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -24,7 +24,7 @@ namespace SaaS.Domain.Entities
         public ICollection<UserBot> UserBots { get; set; } = new List<UserBot>();
         public ICollection<ConnectedAccount> ConnectedAccounts { get; set; } = new List<ConnectedAccount>();
         public ICollection<TargetGroup> TargetGroups { get; set; } = new List<TargetGroup>();
-        public ICollection<Run> Runs { get; set; } = new List<Run>();
+        public ICollection<Scrape> Scrapes { get; set; } = new List<Scrape>();
         public ICollection<Lead> Leads { get; set; } = new List<Lead>();
         public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
         public ICollection<UserRefreshToken> RefreshTokens { get; set; } = new List<UserRefreshToken>();

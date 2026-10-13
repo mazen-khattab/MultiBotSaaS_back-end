@@ -66,9 +66,9 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
                     new Lead { Id = 1, GroupId = 1, ProfileName = "Lead 1", UserId = userId },
                     new Lead { Id = 2, GroupId = 1, ProfileName = "Lead 2", UserId = userId }
                 },
-                Runs = new List<Run>
+                Scrapes = new List<Scrape>
                 {
-                    new Run { Id = 1, GroupId = 1, UserId = userId, Status = "Completed" }
+                    new Scrape { Id = 1, GroupId = 1, UserId = userId, Status = "Completed" }
                 }
             };
 
@@ -92,7 +92,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             result.Data.IsActive.Should().BeTrue();
             result.Data.ExpiredAt.Should().Be(expireDate);
             result.Data.RelatedLeadsCount.Should().Be(2);
-            result.Data.RunsCount.Should().Be(1);
+            result.Data.ScrapesCount.Should().Be(1);
             result.Data.MaskedCookies.Should().EndWith("1234");
         }
 

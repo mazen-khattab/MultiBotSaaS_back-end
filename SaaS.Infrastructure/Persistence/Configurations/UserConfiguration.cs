@@ -53,7 +53,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey<UserSetting>(us => us.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // The 1-to-many relationships to UserBot, ConnectedAccount, TargetGroup, Run,
+        // The 1-to-many relationships to UserBot, ConnectedAccount, TargetGroup, Scrape,
         // Lead and Transaction are deliberately configured in each dependent entity's
         // own configuration file instead of here, so each relationship has exactly one
         // place where its FK/DeleteBehavior is defined.

@@ -64,6 +64,18 @@ namespace SaaS.Application.Features.Worker.Commands.DispatchMessaging
                 return ApiResponse<DispatchMessagingResultDto>.Failure("A job is already processing for this bot. Please wait for it to finish.", ErrorType.TooManyRequests);
             }
 
+            var apiKeysInfo = await _dbContext.UserSettings
+                .AsNoTracking()
+                .Where(us => us.UserId == request.UserId)
+                .Select(us => new { us.AIApiKeyExpirationDate, us.ScraperApiTokenExpirationDate })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (apiKeysInfo != null && (apiKeysInfo.AIApiKeyExpirationDate <= DateTime.UtcNow || apiKeysInfo.ScraperApiTokenExpirationDate <= DateTime.UtcNow))
+            {
+                _logger.LogWarning("API keys have expired for UserId: {UserId}", request.UserId);
+                return ApiResponse<DispatchMessagingResultDto>.Failure("API Keys have expired. Please renew them.", ErrorType.Unauthorized);
+            }
+
             // Fetch active connected account for this bot and user including cookie
             _logger.LogDebug("Fetching active connected account for UserId: {UserId}, AccountId: {AccountId}", request.UserId, request.AccountId);
             var account = await _dbContext.ConnectedAccounts

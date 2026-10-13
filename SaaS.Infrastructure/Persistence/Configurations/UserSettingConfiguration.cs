@@ -33,6 +33,9 @@ public class UserSettingConfiguration : IEntityTypeConfiguration<UserSetting>
 
         builder.Property(us => us.DailyMessageLimit)
             .IsRequired()
+            // Zero is a valid user setting and must be inserted explicitly.
+            // Use an invalid limit as EF's unset marker, preserving the database default.
+            .HasSentinel(-1)
             .HasDefaultValue(50);
 
         builder.Property(us => us.AIApiKeyEncrypted)
@@ -42,6 +45,14 @@ public class UserSettingConfiguration : IEntityTypeConfiguration<UserSetting>
         builder.Property(us => us.ScraperApiTokenEncrypted)
             .HasColumnType("nvarchar(max)")
             .IsRequired(false);
+
+        builder.Property(us => us.AIApiKeyExpirationDate)
+            .IsRequired()
+            .HasDefaultValueSql("DATEADD(day, 7, GETUTCDATE())");
+
+        builder.Property(us => us.ScraperApiTokenExpirationDate)
+            .IsRequired()
+            .HasDefaultValueSql("DATEADD(day, 7, GETUTCDATE())");
 
         // The actual FK + Cascade delete behavior for this relationship is configured
         // once, on the UserConfiguration side, via HasForeignKey<UserSetting>(us => us.UserId).

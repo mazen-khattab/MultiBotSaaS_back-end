@@ -34,6 +34,8 @@ namespace SaaS.Application.UnitTests.Mapper
             dto.HasScraperToken.Should().BeFalse();
             dto.MaskedScraperToken.Should().BeEmpty();
             dto.DailyLeadLimit.Should().Be(0);
+            dto.CompanyName.Should().BeNull();
+            dto.CompanyPitch.Should().BeNull();
         }
 
         [Fact]
@@ -52,9 +54,11 @@ namespace SaaS.Application.UnitTests.Mapper
             {
                 Id = 1,
                 UserId = Guid.NewGuid(),
-                ScraperApiTokenEncrypted = "enc_openai",
-                AIApiKeyEncrypted = "enc_apify",
-                DailyMessageLimit = 250
+                AIApiKeyEncrypted = "enc_openai",
+                ScraperApiTokenEncrypted = "enc_apify",
+                DailyMessageLimit = 250,
+                CompanyName = "Example company",
+                CompanyPitch = "We automate sales outreach."
             };
 
             // Act
@@ -69,6 +73,8 @@ namespace SaaS.Application.UnitTests.Mapper
             dto.MaskedScraperToken.Should().EndWith("8888");
             dto.MaskedScraperToken.Should().StartWith("***");
             dto.DailyLeadLimit.Should().Be(250);
+            dto.CompanyName.Should().Be("Example company");
+            dto.CompanyPitch.Should().Be("We automate sales outreach.");
         }
 
         [Theory]
@@ -120,10 +126,10 @@ namespace SaaS.Application.UnitTests.Mapper
 
             // Assert
             dto.Should().NotBeNull();
-            dto.HasAIApiKey.Should().BeTrue();
-            dto.MaskedAIApiKey.Should().EndWith("1234");
-            dto.HasScraperToken.Should().BeFalse();
-            dto.MaskedScraperToken.Should().BeEmpty();
+            dto.HasAIApiKey.Should().BeFalse();
+            dto.MaskedAIApiKey.Should().BeEmpty();
+            dto.HasScraperToken.Should().BeTrue();
+            dto.MaskedScraperToken.Should().EndWith("1234");
             dto.DailyLeadLimit.Should().Be(100);
         }
 
@@ -148,10 +154,10 @@ namespace SaaS.Application.UnitTests.Mapper
 
             // Assert
             dto.Should().NotBeNull();
-            dto.HasAIApiKey.Should().BeFalse();
-            dto.MaskedAIApiKey.Should().BeEmpty();
-            dto.HasScraperToken.Should().BeTrue();
-            dto.MaskedScraperToken.Should().EndWith("5678");
+            dto.HasAIApiKey.Should().BeTrue();
+            dto.MaskedAIApiKey.Should().EndWith("5678");
+            dto.HasScraperToken.Should().BeFalse();
+            dto.MaskedScraperToken.Should().BeEmpty();
             dto.DailyLeadLimit.Should().Be(50);
         }
 

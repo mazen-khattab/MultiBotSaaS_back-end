@@ -26,7 +26,7 @@ namespace SaaS.Application.Features.TargetGroups.Queries.GetById
                 {
                     Group = x,
                     LeadsCount = x.Leads.Count(),
-                    RunsCount = x.Runs.Count()
+                    ScrapesCount = x.Scrapes.Count()
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -35,7 +35,7 @@ namespace SaaS.Application.Features.TargetGroups.Queries.GetById
                 return ApiResponse<GroupDetailsDto>.Failure("Target group not found", Domain.Enums.ErrorType.NotFound);
             }
 
-            var groupDto = result.Group.ToDetailsDto(result.LeadsCount, result.RunsCount);
+            var groupDto = result.Group.ToDetailsDto(result.LeadsCount, result.ScrapesCount);
 
             return ApiResponse<GroupDetailsDto>.Success(groupDto, "Target group retrieved successfully");
         }

@@ -47,15 +47,24 @@ namespace SaaS.Application.Features.Settings.Commands.Manage
                     setting.ScraperApiTokenEncrypted = encryptedScraperToken;
 
                 setting.DailyMessageLimit = request.DailyLeadLimit;
+
+                // Partial settings updates preserve company fields when no replacement is supplied.
+                if (request.CompanyName != null)
+                    setting.CompanyName = request.CompanyName;
+
+                if (request.CompanyPitch != null)
+                    setting.CompanyPitch = request.CompanyPitch;
             }
             else
             {
                 var settings = new UserSetting
                 {
                     UserId = request.UserId,
-                    ScraperApiTokenEncrypted = encryptedAiKey,
-                    AIApiKeyEncrypted = encryptedScraperToken,
-                    DailyMessageLimit = request.DailyLeadLimit
+                    AIApiKeyEncrypted = encryptedAiKey,
+                    ScraperApiTokenEncrypted = encryptedScraperToken,
+                    DailyMessageLimit = request.DailyLeadLimit,
+                    CompanyName = request.CompanyName,
+                    CompanyPitch = request.CompanyPitch
                 };
 
                 await _context.UserSettings.AddAsync(settings, cancellationToken);
@@ -63,7 +72,7 @@ namespace SaaS.Application.Features.Settings.Commands.Manage
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            return ApiResponse<Guid>.Success(request.UserId, "Target group managed successfully");
+            return ApiResponse<Guid>.Success(request.UserId, "Settings updated successfully.");
         }
     }
 }

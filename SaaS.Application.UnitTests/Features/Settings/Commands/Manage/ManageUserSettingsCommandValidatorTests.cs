@@ -67,5 +67,24 @@ namespace SaaS.Application.UnitTests.Features.Settings.Commands.Manage
             // Assert
             result.ShouldNotHaveValidationErrorFor(x => x.DailyLeadLimit);
         }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(100)]
+        public void Validate_WhenCompanyNameFitsColumn_ShouldNotHaveValidationErrors(int length)
+        {
+            var command = new ManageUserSettingsCommand(Guid.NewGuid(), null, null, 30,
+                new string('x', length), new string('p', 1000));
+
+            _validator.TestValidate(command).ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact]
+        public void Validate_WhenCompanyNameExceedsColumnLength_ShouldHaveValidationError()
+        {
+            var command = new ManageUserSettingsCommand(Guid.NewGuid(), null, null, 30, new string('x', 101));
+
+            _validator.TestValidate(command).ShouldHaveValidationErrorFor(x => x.CompanyName);
+        }
     }
 }

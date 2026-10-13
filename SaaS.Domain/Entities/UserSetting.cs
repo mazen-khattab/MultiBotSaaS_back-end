@@ -15,6 +15,8 @@ namespace SaaS.Domain.Entities
         // AES-256 Encrypted API Keys
         public string? AIApiKeyEncrypted { get; set; }
         public string? ScraperApiTokenEncrypted { get; set; }
+        public DateTime AIApiKeyExpirationDate { get; set; } = DateTime.UtcNow.AddDays(7);
+        public DateTime ScraperApiTokenExpirationDate { get; set; } = DateTime.UtcNow.AddDays(7);
 
         // Navigation Property
         public User User { get; set; } = null!;

@@ -45,6 +45,7 @@ namespace SaaS.Application.Mapper
                 Platform: account.Platform,
                 ExpiredAt: account.Cookie.CookiesExpireDate,
                 IsActive: account.IsActive,
+                Status: account.Status,
                 RelatedLeadsCount: relatedLeadsCount,
                 RunsCount: runsCount
             );

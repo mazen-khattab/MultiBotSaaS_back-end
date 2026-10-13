@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -62,16 +62,16 @@ namespace SaaS.Api.Controllers.v1
         }
 
         /// <summary>
-        /// Get all groups for the current user.
+        /// Get all groups for the current user and specified bot.
         /// Maps to GetAllGroupsQuery and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;T&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
-        [HttpGet]
-        public async Task<ActionResult<object>> GetAll()
+        [HttpGet("{botId}")]
+        public async Task<ActionResult<object>> GetAll([FromRoute] int botId)
         {
             var userId = GetUserId();
 
-            var query = new GetAllGroupsQuery(userId);
+            var query = new GetAllGroupsQuery(userId, botId);
             var result = await _sender.Send(query);
 
             if (result is not null && result.IsSuccess)
@@ -95,15 +95,16 @@ namespace SaaS.Api.Controllers.v1
         }
 
         /// <summary>
-        /// Get a group by its id.
+        /// Get a group by its id for the specified bot.
         /// Maps to GetGroupByIdQuery and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;T&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetById(int id)
+        [HttpGet("{botId}/{id}")]
+        public async Task<ActionResult<object>> GetById([FromRoute] int botId, [FromRoute] int id)
         {
-            var query = new GetGroupByIdQuery(id);
+            var userId = GetUserId();
+
+            var query = new GetGroupByIdQuery(userId, botId, id);
             var result = await _sender.Send(query);
 
             if (result is not null && result.IsSuccess)

@@ -22,8 +22,8 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Add
             RuleFor(x => x.AccountDto.DisplayName)
                 .NotEmpty().WithMessage("DisplayName is required.");
 
-            RuleFor(x => x.AccountDto.Cookies)
-                .Must(IsValidJson).WithMessage("Cookies must be valid JSON.");
+            RuleFor(x => x.AccountDto.CookiesPayload)
+                .Must(IsValidJson).WithMessage("CookiesPayload must be valid JSON.");
         }
 
         private bool IsValidJson(string json)

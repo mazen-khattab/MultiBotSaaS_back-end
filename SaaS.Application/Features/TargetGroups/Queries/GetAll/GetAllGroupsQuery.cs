@@ -6,5 +6,5 @@ using System.Collections.Generic;
 
 namespace SaaS.Application.Features.TargetGroups.Queries.GetAll
 {
-    public record GetAllGroupsQuery(Guid UserId) : IRequest<ApiResponse<List<GroupDto>>>;
+    public record GetAllGroupsQuery(Guid UserId, int BotId) : IRequest<ApiResponse<List<GroupDto>>>;
 }

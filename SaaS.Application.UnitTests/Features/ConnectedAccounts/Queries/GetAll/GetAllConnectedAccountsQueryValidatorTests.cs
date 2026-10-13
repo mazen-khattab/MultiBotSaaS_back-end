@@ -18,7 +18,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
         public void Validate_WhenUserIdIsValidGuid_ShouldNotHaveAnyValidationErrors()
         {
             // Arrange
-            var query = new GetAllConnectedAccountsQuery(Guid.NewGuid());
+            var query = new GetAllConnectedAccountsQuery(Guid.NewGuid(), 1);
 
             // Act
             var result = _validator.TestValidate(query);
@@ -31,7 +31,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
         public void Validate_WhenUserIdIsEmptyGuid_ShouldHaveValidationError()
         {
             // Arrange
-            var query = new GetAllConnectedAccountsQuery(Guid.Empty);
+            var query = new GetAllConnectedAccountsQuery(Guid.Empty, 1);
 
             // Act
             var result = _validator.TestValidate(query);

@@ -41,9 +41,9 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Update
             entity.IsActive = accountInfo.IsActive;
             entity.Status = accountInfo.Status.ParseFromDbToAccountStatus().ToDbString();
 
-            if (!string.IsNullOrWhiteSpace(accountInfo.Cookies))
+            if (!string.IsNullOrWhiteSpace(accountInfo.CookiesPayload))
             {
-                entity.Cookie.EncryptedCookies = _encryptionService.Encrypt(accountInfo.Cookies);
+                entity.Cookie.EncryptedCookies = _encryptionService.Encrypt(accountInfo.CookiesPayload);
                 entity.Cookie.CookiesExpireDate = DateTime.UtcNow.AddDays(7);
             }
 

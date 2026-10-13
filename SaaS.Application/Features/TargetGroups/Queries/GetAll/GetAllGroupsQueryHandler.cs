@@ -23,7 +23,7 @@ namespace SaaS.Application.Features.TargetGroups.Queries.GetAll
         public async Task<ApiResponse<List<GroupDto>>> Handle(GetAllGroupsQuery request, CancellationToken cancellationToken)
         {
             var groups = await _context.TargetGroups
-                .Where(x => x.UserId == request.UserId)
+                .Where(x => x.UserId == request.UserId && x.BotId == request.BotId)
                 .ToListAsync(cancellationToken);
 
             if (groups == null || !groups.Any())

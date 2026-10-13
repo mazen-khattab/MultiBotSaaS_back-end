@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SaaS.Application.Common.Dtos;
 using SaaS.Application.Common.Interfaces;
@@ -24,7 +24,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetAll
         {
             var accounts = await _context.ConnectedAccounts
                 .Include(ca => ca.Cookie)
-                .Where(x => x.UserId == request.UserId)
+                .Where(x => x.UserId == request.UserId && x.BotId == request.BotId)
                 .ToListAsync(cancellationToken);
 
             if (accounts == null || !accounts.Any())

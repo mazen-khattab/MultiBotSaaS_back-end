@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SaaS.Application.Common.Dtos;
 using SaaS.Application.Common.Interfaces;
@@ -22,6 +22,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetById
         public async Task<ApiResponse<ConnectedAccountDetailsDto>> Handle(GetConnectedAccountByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _context.ConnectedAccounts
+                .Where(ca => ca.UserId == request.UserId && ca.BotId == request.BotId && ca.Id == request.Id)
                 .Select(x => new
                 {
                     Account = x,
@@ -29,7 +30,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetById
                     LeadsCount = x.Leads.Count(),
                     RunsCount = x.Runs.Count()
                 })
-                .FirstOrDefaultAsync(ca => ca.Account.Id == request.Id, cancellationToken);
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (result is null)
             {

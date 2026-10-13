@@ -21,7 +21,7 @@ namespace SaaS.Application.Features.TargetGroups.Queries.GetById
         public async Task<ApiResponse<GroupDetailsDto>> Handle(GetGroupByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _context.TargetGroups
-                .Where(x => x.Id == request.Id)
+                .Where(x => x.UserId == request.UserId && x.BotId == request.BotId && x.Id == request.Id)
                 .Select(x => new
                 {
                     Group = x,

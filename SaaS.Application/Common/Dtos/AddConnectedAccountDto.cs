@@ -4,5 +4,5 @@ using System.Text;
 
 namespace SaaS.Application.Common.Dtos
 {
-    public record AddConnectedAccountDto(int BotId, string DisplayName, string Platform, string Cookies);
+    public record AddConnectedAccountDto(int BotId, string DisplayName, string Platform, string CookiesPayload);
 }

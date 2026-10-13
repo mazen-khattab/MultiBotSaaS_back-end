@@ -15,23 +15,23 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetAll
         }
 
         [Fact]
-        public void Validate_WhenUserIdIsNotEmpty_ShouldNotHaveValidationError()
+        public void Validate_WhenQueryIsValid_ShouldNotHaveAnyValidationErrors()
         {
             // Arrange
-            var query = new GetAllGroupsQuery(Guid.NewGuid());
+            var query = new GetAllGroupsQuery(Guid.NewGuid(), 1);
 
             // Act
             var result = _validator.TestValidate(query);
 
             // Assert
-            result.ShouldNotHaveValidationErrorFor(x => x.UserId);
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact]
         public void Validate_WhenUserIdIsEmpty_ShouldHaveValidationError()
         {
             // Arrange
-            var query = new GetAllGroupsQuery(Guid.Empty);
+            var query = new GetAllGroupsQuery(Guid.Empty, 1);
 
             // Act
             var result = _validator.TestValidate(query);
@@ -39,6 +39,21 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetAll
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.UserId)
                 .WithErrorMessage("A valid user Id must be provided.");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void Validate_WhenBotIdIsZeroOrNegative_ShouldHaveValidationError(int invalidBotId)
+        {
+            // Arrange
+            var query = new GetAllGroupsQuery(Guid.NewGuid(), invalidBotId);
+
+            // Act
+            var result = _validator.TestValidate(query);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.BotId);
         }
     }
 }

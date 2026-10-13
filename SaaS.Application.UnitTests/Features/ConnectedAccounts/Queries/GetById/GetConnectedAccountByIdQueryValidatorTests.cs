@@ -14,10 +14,10 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
         }
 
         [Fact]
-        public void Validate_WhenIdIsGreaterThanZero_ShouldNotHaveAnyValidationErrors()
+        public void Validate_WhenQueryIsValid_ShouldNotHaveAnyValidationErrors()
         {
             // Arrange
-            var query = new GetConnectedAccountByIdQuery(1);
+            var query = new GetConnectedAccountByIdQuery(Guid.NewGuid(), 1, 1);
 
             // Act
             var result = _validator.TestValidate(query);
@@ -26,13 +26,41 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             result.ShouldNotHaveAnyValidationErrors();
         }
 
+        [Fact]
+        public void Validate_WhenUserIdIsEmpty_ShouldHaveValidationError()
+        {
+            // Arrange
+            var query = new GetConnectedAccountByIdQuery(Guid.Empty, 1, 1);
+
+            // Act
+            var result = _validator.TestValidate(query);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.UserId);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void Validate_WhenBotIdIsZeroOrNegative_ShouldHaveValidationError(int invalidBotId)
+        {
+            // Arrange
+            var query = new GetConnectedAccountByIdQuery(Guid.NewGuid(), invalidBotId, 1);
+
+            // Act
+            var result = _validator.TestValidate(query);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.BotId);
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
         public void Validate_WhenIdIsZeroOrNegative_ShouldHaveValidationError(int invalidId)
         {
             // Arrange
-            var query = new GetConnectedAccountByIdQuery(invalidId);
+            var query = new GetConnectedAccountByIdQuery(Guid.NewGuid(), 1, invalidId);
 
             // Act
             var result = _validator.TestValidate(query);

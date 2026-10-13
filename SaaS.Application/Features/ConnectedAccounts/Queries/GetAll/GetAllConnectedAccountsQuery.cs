@@ -7,5 +7,5 @@ using System.Text;
 
 namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetAll
 {
-    public record GetAllConnectedAccountsQuery(Guid UserId) : IRequest<ApiResponse<List<ConnectedAccountDto>>>;
+    public record GetAllConnectedAccountsQuery(Guid UserId, int BotId) : IRequest<ApiResponse<List<ConnectedAccountDto>>>;
 }

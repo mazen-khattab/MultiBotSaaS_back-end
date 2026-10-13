@@ -29,7 +29,73 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetById
             // Arrange
             using var dbContext = CreateDbContext();
             var handler = new GetGroupByIdQueryHandler(dbContext);
-            var query = new GetGroupByIdQuery(999);
+            var query = new GetGroupByIdQuery(Guid.NewGuid(), 1, 999);
+
+            // Act
+            var result = await handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ErrorType.NotFound, result.ErrorType);
+            Assert.Equal("Target group not found", result.Message);
+        }
+
+        [Fact]
+        public async Task Handle_WhenGroupBelongsToDifferentUser_ShouldReturnNotFoundFailure()
+        {
+            // Arrange
+            using var dbContext = CreateDbContext();
+            var ownerId = Guid.NewGuid();
+            var otherUserId = Guid.NewGuid();
+            var groupId = 10;
+            var botId = 1;
+
+            var group = new TargetGroup
+            {
+                Id = groupId,
+                UserId = ownerId,
+                BotId = botId,
+                GroupName = "Marketing Agency",
+                GroupUrl = "https://example.com/agency"
+            };
+
+            await dbContext.TargetGroups.AddAsync(group);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new GetGroupByIdQueryHandler(dbContext);
+            var query = new GetGroupByIdQuery(otherUserId, botId, groupId);
+
+            // Act
+            var result = await handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ErrorType.NotFound, result.ErrorType);
+            Assert.Equal("Target group not found", result.Message);
+        }
+
+        [Fact]
+        public async Task Handle_WhenGroupBelongsToDifferentBot_ShouldReturnNotFoundFailure()
+        {
+            // Arrange
+            using var dbContext = CreateDbContext();
+            var userId = Guid.NewGuid();
+            var groupId = 10;
+
+            var group = new TargetGroup
+            {
+                Id = groupId,
+                UserId = userId,
+                BotId = 1,
+                GroupName = "Marketing Agency",
+                GroupUrl = "https://example.com/agency"
+            };
+
+            await dbContext.TargetGroups.AddAsync(group);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new GetGroupByIdQueryHandler(dbContext);
+            var query = new GetGroupByIdQuery(userId, 2, groupId);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -93,7 +159,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetById
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new GetGroupByIdQueryHandler(dbContext);
-            var query = new GetGroupByIdQuery(groupId);
+            var query = new GetGroupByIdQuery(userId, 1, groupId);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);

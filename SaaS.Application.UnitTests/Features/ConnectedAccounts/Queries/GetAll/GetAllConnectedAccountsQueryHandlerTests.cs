@@ -29,10 +29,12 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
             using var dbContext = CreateInMemoryDbContext();
             var targetUserId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
+            var botId = 1;
 
             var account1 = new ConnectedAccount
             {
                 UserId = targetUserId,
+                BotId = botId,
                 DisplayName = "User Account 1",
                 Platform = "Facebook",
                 IsActive = true,
@@ -44,6 +46,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
             var account2 = new ConnectedAccount
             {
                 UserId = targetUserId,
+                BotId = botId,
                 DisplayName = "User Account 2",
                 Platform = "Instagram",
                 IsActive = false,
@@ -52,9 +55,22 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
                     CookiesExpireDate = DateTime.UtcNow.AddDays(14)
                 }
             };
+            var differentBotAccount = new ConnectedAccount
+            {
+                UserId = targetUserId,
+                BotId = 2,
+                DisplayName = "Different Bot Account",
+                Platform = "Facebook",
+                IsActive = true,
+                Cookie = new ConnectedAccountCookie
+                {
+                    CookiesExpireDate = DateTime.UtcNow.AddDays(3)
+                }
+            };
             var otherUserAccount = new ConnectedAccount
             {
                 UserId = otherUserId,
+                BotId = botId,
                 DisplayName = "Other User Account",
                 Platform = "Twitter",
                 IsActive = true,
@@ -64,11 +80,11 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
                 }
             };
 
-            await dbContext.ConnectedAccounts.AddRangeAsync(account1, account2, otherUserAccount);
+            await dbContext.ConnectedAccounts.AddRangeAsync(account1, account2, differentBotAccount, otherUserAccount);
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new GetAllConnectedAccountsQueryHandler(dbContext);
-            var query = new GetAllConnectedAccountsQuery(targetUserId);
+            var query = new GetAllConnectedAccountsQuery(targetUserId, botId);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -81,6 +97,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
             result.Data.Should().HaveCount(2);
             result.Data.Should().Contain(a => a.DisplayName == "User Account 1" && a.Platform == "Facebook");
             result.Data.Should().Contain(a => a.DisplayName == "User Account 2" && a.Platform == "Instagram");
+            result.Data.Should().NotContain(a => a.DisplayName == "Different Bot Account");
             result.Data.Should().NotContain(a => a.DisplayName == "Other User Account");
         }
 
@@ -92,7 +109,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
             var userIdWithNoAccounts = Guid.NewGuid();
 
             var handler = new GetAllConnectedAccountsQueryHandler(dbContext);
-            var query = new GetAllConnectedAccountsQuery(userIdWithNoAccounts);
+            var query = new GetAllConnectedAccountsQuery(userIdWithNoAccounts, 1);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);

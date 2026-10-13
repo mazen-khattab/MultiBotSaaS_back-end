@@ -45,10 +45,13 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             _encryptionServiceMock.Setup(e => e.Decrypt("encrypted-cookie-data"))
                 .Returns(plainCookies);
 
+            var botId = 1;
+
             var account = new ConnectedAccount
             {
                 Id = accountId,
                 UserId = userId,
+                BotId = botId,
                 DisplayName = "Main Facebook Account",
                 Platform = "Facebook",
                 IsActive = true,
@@ -73,7 +76,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new GetConnectedAccountByIdQueryHandler(dbContext, _encryptionServiceMock.Object);
-            var query = new GetConnectedAccountByIdQuery(accountId);
+            var query = new GetConnectedAccountByIdQuery(userId, botId, accountId);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -99,7 +102,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
             var handler = new GetConnectedAccountByIdQueryHandler(dbContext, _encryptionServiceMock.Object);
-            var query = new GetConnectedAccountByIdQuery(999);
+            var query = new GetConnectedAccountByIdQuery(Guid.NewGuid(), 1, 999);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
@@ -109,6 +112,76 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetById
             result.IsSuccess.Should().BeFalse();
             result.ErrorType.Should().Be(ErrorType.NotFound);
             result.Message.Should().Be("Connected account with ID 999 not found");
+        }
+
+        [Fact]
+        public async Task Handle_WhenAccountBelongsToDifferentUser_ReturnsNotFoundFailure()
+        {
+            // Arrange
+            using var dbContext = CreateInMemoryDbContext();
+            var accountId = 10;
+            var ownerUserId = Guid.NewGuid();
+            var attackerUserId = Guid.NewGuid();
+            var botId = 1;
+
+            var account = new ConnectedAccount
+            {
+                Id = accountId,
+                UserId = ownerUserId,
+                BotId = botId,
+                DisplayName = "Target Account",
+                Platform = "Facebook",
+                IsActive = true
+            };
+
+            await dbContext.ConnectedAccounts.AddAsync(account);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new GetConnectedAccountByIdQueryHandler(dbContext, _encryptionServiceMock.Object);
+            var query = new GetConnectedAccountByIdQuery(attackerUserId, botId, accountId);
+
+            // Act
+            var result = await handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorType.Should().Be(ErrorType.NotFound);
+        }
+
+        [Fact]
+        public async Task Handle_WhenAccountBelongsToDifferentBot_ReturnsNotFoundFailure()
+        {
+            // Arrange
+            using var dbContext = CreateInMemoryDbContext();
+            var accountId = 10;
+            var userId = Guid.NewGuid();
+            var botId = 1;
+            var requestedBotId = 2;
+
+            var account = new ConnectedAccount
+            {
+                Id = accountId,
+                UserId = userId,
+                BotId = botId,
+                DisplayName = "Target Account",
+                Platform = "Facebook",
+                IsActive = true
+            };
+
+            await dbContext.ConnectedAccounts.AddAsync(account);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+
+            var handler = new GetConnectedAccountByIdQueryHandler(dbContext, _encryptionServiceMock.Object);
+            var query = new GetConnectedAccountByIdQuery(userId, requestedBotId, accountId);
+
+            // Act
+            var result = await handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorType.Should().Be(ErrorType.NotFound);
         }
     }
 }

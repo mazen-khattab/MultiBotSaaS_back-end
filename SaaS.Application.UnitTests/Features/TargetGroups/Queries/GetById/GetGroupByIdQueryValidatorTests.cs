@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using SaaS.Application.Features.TargetGroups.Queries.GetById;
+using System;
 using Xunit;
 
 namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetById
@@ -17,16 +18,46 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetById
         [InlineData(1)]
         [InlineData(10)]
         [InlineData(100)]
-        public void Validate_WhenIdIsGreaterThanZero_ShouldNotHaveValidationError(int validId)
+        public void Validate_WhenQueryIsValid_ShouldNotHaveValidationError(int validId)
         {
             // Arrange
-            var query = new GetGroupByIdQuery(validId);
+            var query = new GetGroupByIdQuery(Guid.NewGuid(), 1, validId);
 
             // Act
             var result = _validator.TestValidate(query);
 
             // Assert
-            result.ShouldNotHaveValidationErrorFor(x => x.Id);
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact]
+        public void Validate_WhenUserIdIsEmpty_ShouldHaveValidationError()
+        {
+            // Arrange
+            var query = new GetGroupByIdQuery(Guid.Empty, 1, 10);
+
+            // Act
+            var result = _validator.TestValidate(query);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.UserId)
+                .WithErrorMessage("A valid user Id must be provided.");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void Validate_WhenBotIdIsZeroOrNegative_ShouldHaveValidationError(int invalidBotId)
+        {
+            // Arrange
+            var query = new GetGroupByIdQuery(Guid.NewGuid(), invalidBotId, 10);
+
+            // Act
+            var result = _validator.TestValidate(query);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.BotId)
+                .WithErrorMessage("BotId must be greater than 0.");
         }
 
         [Theory]
@@ -36,7 +67,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetById
         public void Validate_WhenIdIsZeroOrNegative_ShouldHaveValidationError(int invalidId)
         {
             // Arrange
-            var query = new GetGroupByIdQuery(invalidId);
+            var query = new GetGroupByIdQuery(Guid.NewGuid(), 1, invalidId);
 
             // Act
             var result = _validator.TestValidate(query);

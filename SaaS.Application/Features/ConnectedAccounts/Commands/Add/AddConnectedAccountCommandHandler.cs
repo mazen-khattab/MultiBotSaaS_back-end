@@ -29,9 +29,9 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Add
             var encrypted = string.Empty;
             var accountInfo = request.AccountDto;
 
-            if (!string.IsNullOrWhiteSpace(accountInfo.Cookies))
+            if (!string.IsNullOrWhiteSpace(accountInfo.CookiesPayload))
             {
-                encrypted = _encryptionService.Encrypt(accountInfo.Cookies);
+                encrypted = _encryptionService.Encrypt(accountInfo.CookiesPayload);
             }
 
             var hasBot = await _userBotService.CheckOwnershipAsync(request.UserId, accountInfo.BotId, cancellationToken);

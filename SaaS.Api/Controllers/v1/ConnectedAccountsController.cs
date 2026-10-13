@@ -100,12 +100,12 @@ namespace SaaS.Api.Controllers.v1
         /// Maps to GetAllConnectedAccountsQuery and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;IEnumerable&lt;T&gt;&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
-        [HttpGet]
-        public async Task<ActionResult<object>> GetAll()
+        [HttpGet("{botId}")]
+        public async Task<ActionResult<object>> GetAll([FromRoute] int botId)
         {
             var userId = GetUserId();
 
-            var query = new GetAllConnectedAccountsQuery(userId);
+            var query = new GetAllConnectedAccountsQuery(userId, botId);
             var result = await _sender.Send(query);
 
             if (result is not null && result.IsSuccess)
@@ -133,10 +133,12 @@ namespace SaaS.Api.Controllers.v1
         /// Maps to GetConnectedAccountByIdQuery and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;T&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetById(int id)
+        [HttpGet("{botId}/{id}")]
+        public async Task<ActionResult<object>> GetById([FromRoute] int botId, [FromRoute] int id)
         {
-            var query = new GetConnectedAccountByIdQuery(id);
+            var userId = GetUserId();
+
+            var query = new GetConnectedAccountByIdQuery(userId, botId, id);
             var result = await _sender.Send(query);
 
             if (result is not null && result.IsSuccess)

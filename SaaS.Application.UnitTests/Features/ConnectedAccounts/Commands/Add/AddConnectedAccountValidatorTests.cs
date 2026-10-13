@@ -93,8 +93,8 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Add
             var result = _validator.TestValidate(command);
 
             // Assert
-            result.ShouldHaveValidationErrorFor(x => x.AccountDto.Cookies)
-                .WithErrorMessage("Cookies must be valid JSON.");
+            result.ShouldHaveValidationErrorFor(x => x.AccountDto.CookiesPayload)
+                .WithErrorMessage("CookiesPayload must be valid JSON.");
         }
     }
 }

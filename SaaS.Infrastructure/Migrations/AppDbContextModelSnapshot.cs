@@ -265,7 +265,7 @@ namespace SaaS.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("RunId")
+                    b.Property<int?>("ScrapeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -288,13 +288,13 @@ namespace SaaS.Infrastructure.Migrations
                     b.HasIndex("ProfileUrl")
                         .HasDatabaseName("IX_Leads_ProfileUrl");
 
-                    b.HasIndex("RunId");
+                    b.HasIndex("ScrapeId");
 
                     b.HasIndex("UserId", "ExternalId")
                         .HasDatabaseName("IX_Leads_UserId_ExternalId");
 
-                    b.HasIndex("UserId", "RunId", "Status")
-                        .HasDatabaseName("IX_Leads_UserId_RunId_Status");
+                    b.HasIndex("UserId", "ScrapeId", "Status")
+                        .HasDatabaseName("IX_Leads_UserId_ScrapeId_Status");
 
                     b.ToTable("Leads", (string)null);
                 });
@@ -315,7 +315,7 @@ namespace SaaS.Infrastructure.Migrations
                     b.ToTable("Leads", (string)null);
                 });
 
-            modelBuilder.Entity("SaaS.Domain.Entities.Run", b =>
+            modelBuilder.Entity("SaaS.Domain.Entities.Scrape", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -369,9 +369,9 @@ namespace SaaS.Infrastructure.Migrations
                     b.HasIndex("GroupId");
 
                     b.HasIndex("UserId", "BotId", "Status")
-                        .HasDatabaseName("IX_Runs_UserId_BotId_Status");
+                        .HasDatabaseName("IX_Scrape_UserId_BotId_Status");
 
-                    b.ToTable("Runs", (string)null);
+                    b.ToTable("Scrapes", (string)null);
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.SystemAdmin", b =>
@@ -802,9 +802,9 @@ namespace SaaS.Infrastructure.Migrations
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SaaS.Domain.Entities.Run", "Run")
+                    b.HasOne("SaaS.Domain.Entities.Scrape", "Scrape")
                         .WithMany("Leads")
-                        .HasForeignKey("RunId")
+                        .HasForeignKey("ScrapeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SaaS.Domain.Entities.User", "User")
@@ -819,7 +819,7 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.Navigation("Group");
 
-                    b.Navigation("Run");
+                    b.Navigation("Scrape");
 
                     b.Navigation("User");
                 });
@@ -835,25 +835,25 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Lead");
                 });
 
-            modelBuilder.Entity("SaaS.Domain.Entities.Run", b =>
+            modelBuilder.Entity("SaaS.Domain.Entities.Scrape", b =>
                 {
                     b.HasOne("SaaS.Domain.Entities.ConnectedAccount", "Account")
-                        .WithMany("Runs")
+                        .WithMany("Scrapes")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SaaS.Domain.Entities.Bot", "Bot")
-                        .WithMany("Runs")
+                        .WithMany("Scrapes")
                         .HasForeignKey("BotId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SaaS.Domain.Entities.TargetGroup", "Group")
-                        .WithMany("Runs")
+                        .WithMany("Scrapes")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SaaS.Domain.Entities.User", "User")
-                        .WithMany("Runs")
+                        .WithMany("Scrapes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -953,7 +953,7 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.Navigation("Leads");
 
-                    b.Navigation("Runs");
+                    b.Navigation("Scrapes");
 
                     b.Navigation("TargetGroups");
 
@@ -967,7 +967,7 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.Navigation("Leads");
 
-                    b.Navigation("Runs");
+                    b.Navigation("Scrapes");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Lead", b =>
@@ -975,7 +975,7 @@ namespace SaaS.Infrastructure.Migrations
                     b.Navigation("Detail");
                 });
 
-            modelBuilder.Entity("SaaS.Domain.Entities.Run", b =>
+            modelBuilder.Entity("SaaS.Domain.Entities.Scrape", b =>
                 {
                     b.Navigation("Leads");
                 });
@@ -989,7 +989,7 @@ namespace SaaS.Infrastructure.Migrations
                 {
                     b.Navigation("Leads");
 
-                    b.Navigation("Runs");
+                    b.Navigation("Scrapes");
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.User", b =>
@@ -1004,7 +1004,7 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.Navigation("RefreshTokens");
 
-                    b.Navigation("Runs");
+                    b.Navigation("Scrapes");
 
                     b.Navigation("Setting")
                         .IsRequired();

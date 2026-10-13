@@ -19,7 +19,7 @@ namespace SaaS.Application.Common.Interfaces
         DbSet<ConnectedAccount> ConnectedAccounts { get; }
         DbSet<ConnectedAccountCookie> ConnectedAccountCookies { get; }
         DbSet<TargetGroup> TargetGroups { get; }
-        DbSet<Run> Runs { get; }
+        DbSet<Scrape> Scrapes { get; }
         DbSet<Job> Jobs { get; }
         DbSet<Lead> Leads { get; }
         DbSet<LeadDetail> LeadDetails { get; }

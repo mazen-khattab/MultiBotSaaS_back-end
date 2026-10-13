@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
@@ -33,6 +33,9 @@ public class UserSettingConfiguration : IEntityTypeConfiguration<UserSetting>
 
         builder.Property(us => us.DailyMessageLimit)
             .IsRequired()
+            // Zero is a valid user setting and must be inserted explicitly.
+            // Use an invalid limit as EF's unset marker, preserving the database default.
+            .HasSentinel(-1)
             .HasDefaultValue(50);
 
         builder.Property(us => us.AIApiKeyEncrypted)

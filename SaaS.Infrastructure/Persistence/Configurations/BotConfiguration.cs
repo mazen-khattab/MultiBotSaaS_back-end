@@ -40,6 +40,6 @@ public class BotConfiguration : IEntityTypeConfiguration<Bot>
             .HasDefaultValue(true);
 
         // All 1-to-many relationships from Bot (UserBot, ConnectedAccount, TargetGroup,
-        // Run, Lead) are configured in each dependent entity's own configuration file.
+        // Scrape, Lead) are configured in each dependent entity's own configuration file.
     }
 }

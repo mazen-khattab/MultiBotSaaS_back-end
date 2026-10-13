@@ -23,7 +23,7 @@ namespace SaaS.Domain.Entities
         public ConnectedAccountCookie Cookie { get; set; } = null!;
         public User User { get; set; } = null!;
         public Bot Bot { get; set; } = null!;
-        public ICollection<Run> Runs { get; set; } = new List<Run>();
+        public ICollection<Scrape> Scrapes { get; set; } = new List<Scrape>();
         public ICollection<Lead> Leads { get; set; } = new List<Lead>();
     }
 }

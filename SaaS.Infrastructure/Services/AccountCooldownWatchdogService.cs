@@ -24,7 +24,7 @@ namespace SaaS.Infrastructure.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Run every 15 minutes
+            // Check account cooldowns every 15 minutes.
             using var timer = new PeriodicTimer(TimeSpan.FromMinutes(15));
 
             while (await timer.WaitForNextTickAsync(stoppingToken))

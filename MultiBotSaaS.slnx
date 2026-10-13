@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="SaaS.Api/SaaS.Api.csproj" />
+  <Project Path="SaaS.Api.IntegrationTests/SaaS.Api.IntegrationTests.csproj" />
   <Project Path="SaaS.Application.UnitTests/SaaS.Application.UnitTests.csproj" Id="cb2ddecf-3e11-4b66-8cfc-efb5b4cbfec4" />
   <Project Path="SaaS.Application/SaaS.Application.csproj" />
   <Project Path="SaaS.Domain.UnitTests/SaaS.Domain.UnitTests.csproj" Id="3da30f4b-6a27-4ba6-ae38-bc4ad79bf23a" />

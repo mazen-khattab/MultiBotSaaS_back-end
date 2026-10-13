@@ -14,12 +14,12 @@ namespace SaaS.Infrastructure.Services
         {
             _hubContext = hubContext;
         }
-        public async Task NotifyRunCompletedAsync(Guid userId, int runId, int leadsCount)
+        public async Task NotifyScrapeCompletedAsync(Guid userId, int scrapeId, int leadsCount)
         {
             await _hubContext.Clients.User(userId.ToString())
-                .SendAsync("RunCompleted", new
+                .SendAsync("ScrapeCompleted", new
                 {
-                    RunId = runId,
+                    ScrapeId = scrapeId,
                     LeadsCount = leadsCount
                 });
         }

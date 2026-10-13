@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
@@ -49,9 +49,9 @@ public class LeadConfiguration : IEntityTypeConfiguration<Lead>
             .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(l => l.Run)
-            .WithMany(r => r.Leads)
-            .HasForeignKey(l => l.RunId)
+        builder.HasOne(l => l.Scrape)
+            .WithMany(candidate => candidate.Leads)
+            .HasForeignKey(l => l.ScrapeId)
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
@@ -87,8 +87,8 @@ public class LeadConfiguration : IEntityTypeConfiguration<Lead>
             .HasDatabaseName("IX_Leads_UserId_ExternalId");
 
         // Covers the most common Lead query pattern: "this user's leads, from this
-        // run, filtered by status" (e.g. pull all 'Pending' leads for a given run).
-        builder.HasIndex(l => new { l.UserId, l.RunId, l.Status })
-            .HasDatabaseName("IX_Leads_UserId_RunId_Status");
+        // scrape, filtered by status" (e.g. pull all 'Pending' leads for a given scrape).
+        builder.HasIndex(l => new { l.UserId, l.ScrapeId, l.Status })
+            .HasDatabaseName("IX_Leads_UserId_ScrapeId_Status");
     }
 }

@@ -14,7 +14,7 @@ namespace SaaS.Domain.Entities
         public int? BotId { get; set; }
         public int? GroupId { get; set; }
         public int? AccountId { get; set; }
-        public int? RunId { get; set; }
+        public int? ScrapeId { get; set; }
 
         public string ProfileName { get; set; } = string.Empty;
         public string ProfileUrl { get; set; } = string.Empty;
@@ -30,7 +30,7 @@ namespace SaaS.Domain.Entities
         public Bot? Bot { get; set; }
         public TargetGroup? Group { get; set; }
         public ConnectedAccount? Account { get; set; }
-        public Run? Run { get; set; }
+        public Scrape? Scrape { get; set; }
 
         // 1-to-1 Heavy Metadata Partitioning
         public LeadDetail? Detail { get; set; }

@@ -111,7 +111,7 @@ namespace SaaS.Application.UnitTests.Mapper
             };
 
             // Act
-            var detailsDto = group.ToDetailsDto(leadsCount: 150, runsCount: 12);
+            var detailsDto = group.ToDetailsDto(leadsCount: 150, scrapesCount: 12);
 
             // Assert
             detailsDto.Should().NotBeNull();
@@ -121,7 +121,7 @@ namespace SaaS.Application.UnitTests.Mapper
             detailsDto.ConfigJson.Should().Be("{\"maxMembers\": 1000}");
             detailsDto.IsActive.Should().BeTrue();
             detailsDto.RelatedLeadsCount.Should().Be(150);
-            detailsDto.RunsCount.Should().Be(12);
+            detailsDto.ScrapesCount.Should().Be(12);
         }
 
         [Fact]

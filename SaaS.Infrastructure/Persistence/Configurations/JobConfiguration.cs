@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
 
@@ -23,7 +23,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .IsRequired();
 
         // BotId is a plain nullable column, not a navigated relationship: the spec
-        // gives it no "FK -> Bot" designation (unlike RunId below), so it's treated
+        // gives it no "FK -> Bot" designation (unlike ScrapeId below), so it's treated
         // as a denormalized reference for fast filtering/reporting only.
         builder.Property(j => j.BotId)
             .IsRequired(false);
@@ -43,12 +43,12 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasDefaultValueSql("GETUTCDATE()");
 
         // Cascade here is intentional and safe: Jobs are queue entries owned entirely
-        // by a Run and have no meaning once that Run is gone. Only one path reaches
-        // Job through Run, so this doesn't create the multiple-cascade-path problem
+        // by a Scrape and have no meaning once that Scrape is gone. Only one path reaches
+        // Job through Scrape, so this doesn't create the multiple-cascade-path problem
         // (SQL Server Error 1750) that the Restrict/SetNull choices elsewhere avoid.
-        //builder.HasOne(j => j.Run)
+        //builder.HasOne(j => j.Scrape)
         //    .WithMany(r => r.Jobs)
-        //    .HasForeignKey(j => j.RunId)
+        //    .HasForeignKey(j => j.ScrapeId)
         //    .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(j => j.User)
@@ -59,7 +59,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.HasIndex(j => j.Status)
             .HasDatabaseName("IX_Jobs_Status");
 
-        //builder.HasIndex(j => j.RunId)
-        //    .HasDatabaseName("IX_Jobs_RunId");
+        //builder.HasIndex(j => j.ScrapeId)
+        //    .HasDatabaseName("IX_Jobs_ScrapeId");
     }
 }

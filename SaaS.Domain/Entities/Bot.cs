@@ -1,4 +1,4 @@
-﻿using SaaS.Domain.Enums;
+using SaaS.Domain.Enums;
 using SaaS.Domain.Extensions;
 using System;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace SaaS.Domain.Entities
         public ICollection<UserBot> UserBots { get; set; } = new List<UserBot>();
         public ICollection<ConnectedAccount> ConnectedAccounts { get; set; } = new List<ConnectedAccount>();
         public ICollection<TargetGroup> TargetGroups { get; set; } = new List<TargetGroup>();
-        public ICollection<Run> Runs { get; set; } = new List<Run>();
+        public ICollection<Scrape> Scrapes { get; set; } = new List<Scrape>();
         public ICollection<Lead> Leads { get; set; } = new List<Lead>();
     }
 }

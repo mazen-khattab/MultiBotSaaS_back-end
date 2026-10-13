@@ -26,11 +26,11 @@ namespace SaaS.Infrastructure.UnitTests.Services
         }
 
         [Fact]
-        public async Task NotifyRunCompletedAsync_ShouldSendRunCompletedEvent_ToTargetUser()
+        public async Task NotifyScrapeCompletedAsync_ShouldSendScrapeCompletedEvent_ToTargetUser()
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var runId = 123;
+            var scrapeId = 123;
             var leadsCount = 45;
 
             object?[]? capturedArgs = null;
@@ -46,16 +46,16 @@ namespace SaaS.Infrastructure.UnitTests.Services
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _service.NotifyRunCompletedAsync(userId, runId, leadsCount);
+            await _service.NotifyScrapeCompletedAsync(userId, scrapeId, leadsCount);
 
             // Assert
             _mockHubClients.Verify(x => x.User(userId.ToString()), Times.Once);
-            capturedMethod.Should().Be("RunCompleted");
+            capturedMethod.Should().Be("ScrapeCompleted");
             capturedArgs.Should().NotBeNull().And.HaveCount(1);
 
             var payload = capturedArgs![0];
             payload.Should().NotBeNull();
-            payload!.GetType().GetProperty("RunId")!.GetValue(payload).Should().Be(runId);
+            payload!.GetType().GetProperty("ScrapeId")!.GetValue(payload).Should().Be(scrapeId);
             payload.GetType().GetProperty("LeadsCount")!.GetValue(payload).Should().Be(leadsCount);
         }
 

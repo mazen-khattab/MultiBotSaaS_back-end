@@ -153,7 +153,7 @@ namespace SaaS.Application.UnitTests.Mapper
             };
 
             // Act
-            var detailsDto = account.ToDetailsDto(_encryptionServiceMock.Object, relatedLeadsCount: 25, runsCount: 5);
+            var detailsDto = account.ToDetailsDto(_encryptionServiceMock.Object, relatedLeadsCount: 25, scrapesCount: 5);
 
             // Assert
             detailsDto.Should().NotBeNull();
@@ -163,7 +163,7 @@ namespace SaaS.Application.UnitTests.Mapper
             detailsDto.ExpiredAt.Should().Be(expireDate);
             detailsDto.IsActive.Should().BeTrue();
             detailsDto.RelatedLeadsCount.Should().Be(25);
-            detailsDto.RunsCount.Should().Be(5);
+            detailsDto.ScrapesCount.Should().Be(5);
             detailsDto.MaskedCookies.Should().EndWith("alue");
             detailsDto.MaskedCookies.Should().StartWith("***");
         }
@@ -193,7 +193,7 @@ namespace SaaS.Application.UnitTests.Mapper
             };
 
             // Act
-            var act = () => account.ToDetailsDto(_encryptionServiceMock.Object, relatedLeadsCount: -1, runsCount: 5);
+            var act = () => account.ToDetailsDto(_encryptionServiceMock.Object, relatedLeadsCount: -1, scrapesCount: 5);
 
             // Assert
             act.Should().Throw<ArgumentOutOfRangeException>()
@@ -201,7 +201,7 @@ namespace SaaS.Application.UnitTests.Mapper
         }
 
         [Fact]
-        public void ToDetailsDto_NegativeRunsCount_ThrowsArgumentOutOfRangeException()
+        public void ToDetailsDto_NegativeScrapesCount_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
             var account = new ConnectedAccount
@@ -211,11 +211,11 @@ namespace SaaS.Application.UnitTests.Mapper
             };
 
             // Act
-            var act = () => account.ToDetailsDto(_encryptionServiceMock.Object, relatedLeadsCount: 5, runsCount: -1);
+            var act = () => account.ToDetailsDto(_encryptionServiceMock.Object, relatedLeadsCount: 5, scrapesCount: -1);
 
             // Assert
             act.Should().Throw<ArgumentOutOfRangeException>()
-                .WithParameterName("runsCount");
+                .WithParameterName("scrapesCount");
         }
 
         [Theory]

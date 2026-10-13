@@ -47,5 +47,13 @@ public class BotActivityLogConfiguration : IEntityTypeConfiguration<BotActivityL
 
         builder.HasIndex(bal => new { bal.CorrelationId, bal.UserId })
             .HasDatabaseName("IX_BotActivityLogs_CorrelationId_UserId");
+
+        builder.HasOne(bal => bal.Bot)
+            .WithMany(b => b.BotActivityLogs)
+            .HasForeignKey(bal => bal.BotId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
+        builder.HasIndex(bal => new { bal.UserId, bal.BotId, bal.CreatedAt, bal.Id });
     }
 }

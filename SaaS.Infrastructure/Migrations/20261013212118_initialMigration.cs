@@ -101,6 +101,7 @@ namespace SaaS.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CorrelationId = table.Column<string>(type: "varchar(100)", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    BotId = table.Column<int>(type: "int", nullable: true),
                     LogLevel = table.Column<string>(type: "varchar(20)", nullable: false, defaultValue: "INFO"),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StackTrace = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -109,6 +110,12 @@ namespace SaaS.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BotActivityLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BotActivityLogs_Bots_BotId",
+                        column: x => x.BotId,
+                        principalTable: "Bots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_BotActivityLogs_Users_UserId",
                         column: x => x.UserId,
@@ -437,14 +444,19 @@ namespace SaaS.Infrastructure.Migrations
                 filter: "[IsActive] = 1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BotActivityLogs_BotId",
+                table: "BotActivityLogs",
+                column: "BotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BotActivityLogs_CorrelationId_UserId",
                 table: "BotActivityLogs",
                 columns: new[] { "CorrelationId", "UserId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BotActivityLogs_UserId",
+                name: "IX_BotActivityLogs_UserId_BotId_CreatedAt_Id",
                 table: "BotActivityLogs",
-                column: "UserId");
+                columns: new[] { "UserId", "BotId", "CreatedAt", "Id" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ConnectedAccounts_BotId",

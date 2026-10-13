@@ -6,6 +6,8 @@ namespace SaaS.Application.Features.Worker.Commands.LogBotActivity
     {
         public LogBotActivityCommandValidator()
         {
+            RuleFor(x => x.BotId).GreaterThan(0).When(x => x.BotId.HasValue);
+
             RuleFor(x => x.CorrelationId)
                 .NotEmpty()
                 .WithMessage("CorrelationId is required.");

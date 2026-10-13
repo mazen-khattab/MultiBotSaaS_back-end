@@ -12,7 +12,7 @@ using SaaS.Infrastructure.Persistence;
 namespace SaaS.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261013181815_initialMigration")]
+    [Migration("20261013212118_initialMigration")]
     partial class initialMigration
     {
         /// <inheritdoc />
@@ -76,6 +76,9 @@ namespace SaaS.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("BotId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CorrelationId")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
@@ -103,10 +106,12 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("BotId");
 
                     b.HasIndex("CorrelationId", "UserId")
                         .HasDatabaseName("IX_BotActivityLogs_CorrelationId_UserId");
+
+                    b.HasIndex("UserId", "BotId", "CreatedAt", "Id");
 
                     b.ToTable("BotActivityLogs", (string)null);
                 });
@@ -739,10 +744,17 @@ namespace SaaS.Infrastructure.Migrations
 
             modelBuilder.Entity("SaaS.Domain.Entities.BotActivityLog", b =>
                 {
+                    b.HasOne("SaaS.Domain.Entities.Bot", "Bot")
+                        .WithMany("BotActivityLogs")
+                        .HasForeignKey("BotId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SaaS.Domain.Entities.User", "User")
                         .WithMany("BotActivityLogs")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Bot");
 
                     b.Navigation("User");
                 });
@@ -952,6 +964,8 @@ namespace SaaS.Infrastructure.Migrations
 
             modelBuilder.Entity("SaaS.Domain.Entities.Bot", b =>
                 {
+                    b.Navigation("BotActivityLogs");
+
                     b.Navigation("ConnectedAccounts");
 
                     b.Navigation("Leads");

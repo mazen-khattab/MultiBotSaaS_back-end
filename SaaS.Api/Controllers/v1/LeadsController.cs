@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace SaaS.Api.Controllers.v1
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     [Authorize]
     public class LeadsController : ControllerBase

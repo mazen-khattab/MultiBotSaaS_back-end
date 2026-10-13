@@ -25,5 +25,6 @@ namespace SaaS.Domain.Entities
         public ICollection<TargetGroup> TargetGroups { get; set; } = new List<TargetGroup>();
         public ICollection<Scrape> Scrapes { get; set; } = new List<Scrape>();
         public ICollection<Lead> Leads { get; set; } = new List<Lead>();
+        public ICollection<BotActivityLog> BotActivityLogs { get; set; } = new List<BotActivityLog>();
     }
 }

@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -143,6 +145,48 @@ public sealed class ScrapesApiTests : IAsyncLifetime
         Assert.Contains("CREATE TABLE [Scrapes]", sql);
         Assert.DoesNotContain("[Runs]", sql);
         Assert.DoesNotContain("[RunId]", sql);
+    }
+
+    [Fact]
+    public void MigrationScript_CreatesSettingsBeforeReferencingExpirationColumns()
+    {
+        using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlServer("Server=unused;Database=unused;Integrated Security=true;TrustServerCertificate=true").Options);
+        var script = db.GetService<IMigrator>().GenerateScript();
+        var createSettingsIndex = script.IndexOf("CREATE TABLE [UserSettings]", StringComparison.Ordinal);
+        Assert.True(createSettingsIndex >= 0);
+        foreach (var column in new[] { "AIApiKeyExpirationDate", "ScraperApiTokenExpirationDate" })
+        {
+            var firstColumnIndex = script.IndexOf($"[{column}]", StringComparison.Ordinal);
+            Assert.True(firstColumnIndex > createSettingsIndex,
+                $"The initial schema must create UserSettings before referencing {column}.");
+        }
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task Create_WithExpiredApiCredential_DoesNotCreateScrapeOrDispatch(bool aiExpired, bool scraperExpired)
+    {
+        await WithDb(async db =>
+        {
+            var settings = await db.UserSettings.SingleAsync(setting => setting.UserId == _userId);
+            settings.AIApiKeyExpirationDate = DateTime.UtcNow.AddDays(aiExpired ? -1 : 1);
+            settings.ScraperApiTokenExpirationDate = DateTime.UtcNow.AddDays(scraperExpired ? -1 : 1);
+            await db.SaveChangesAsync();
+        });
+
+        using var response = await Send(HttpMethod.Post, Route, _userId, new CreateScrapeDto(100, 100, null, "{}"));
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        Assert.Equal("API Keys have expired. Please renew them.", error!.Message);
+        await WithDb(async db =>
+        {
+            Assert.Empty(await db.Scrapes.ToListAsync());
+            Assert.Equal("Active", (await db.ConnectedAccounts.SingleAsync()).Status);
+        });
+        _network.Verify(network => network.PostJsonAsync(It.IsAny<string>(), It.IsAny<object>(),
+            ExternalSystem.N8n, It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

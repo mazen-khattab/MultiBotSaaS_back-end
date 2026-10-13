@@ -142,7 +142,6 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
                 return ApiResponse<int>.Failure("API Keys have expired. Please renew them.", ErrorType.Unauthorized);
             }
 
-
             _logger.LogDebug("Decrypting cookies for connected account. ConnectedAccountId: {ConnectedAccountId}", connectedAccountId);
             // Decrypt cookies
             var encrypted = account.Cookie?.EncryptedCookies ?? string.Empty;

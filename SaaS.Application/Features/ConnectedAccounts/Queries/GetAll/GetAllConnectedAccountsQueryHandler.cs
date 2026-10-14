@@ -14,14 +14,23 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetAll
     public class GetAllConnectedAccountsQueryHandler : IRequestHandler<GetAllConnectedAccountsQuery, ApiResponse<List<ConnectedAccountDto>>>
     {
         private readonly IAppDbContext _context;
+        private readonly IUserBotService _userBotService;
 
-        public GetAllConnectedAccountsQueryHandler(IAppDbContext context)
+        public GetAllConnectedAccountsQueryHandler(IAppDbContext context, IUserBotService userBotService)
         {
             _context = context;
+            _userBotService = userBotService;
         }
 
         public async Task<ApiResponse<List<ConnectedAccountDto>>> Handle(GetAllConnectedAccountsQuery request, CancellationToken cancellationToken)
         {
+            var hasOwnership = await _userBotService.CheckOwnershipAsync(request.UserId, request.BotId, cancellationToken);
+
+            if (!hasOwnership)
+            {
+                return ApiResponse<List<ConnectedAccountDto>>.Failure("User or bot not found", ErrorType.NotFound);
+            }
+
             var accounts = await _context.ConnectedAccounts
                 .Include(ca => ca.Cookie)
                 .Where(x => x.UserId == request.UserId && x.BotId == request.BotId)
@@ -29,7 +38,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetAll
 
             if (accounts == null || !accounts.Any())
             {
-                return ApiResponse<List<ConnectedAccountDto>>.Failure("No connected accounts found for the specified user", ErrorType.NotFound);
+                return ApiResponse<List<ConnectedAccountDto>>.Success(new List<ConnectedAccountDto>(), "No connected accounts found");
             }
 
             var accountDtos = accounts.ToDtoList();

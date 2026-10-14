@@ -63,6 +63,7 @@ public sealed class ActivityLogsApiTests : IAsyncLifetime
                         new DbContextOptionsBuilder<AppDbContext>().UseSqlite(_connection).Options));
                     services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
                     services.AddScoped<ISessionTokenValidator, SessionTokenValidator>();
+                    services.AddScoped<IUserBotService, UserBotService>();
                     services.Configure<WorkerOptions>(options => options.WorkerSecret = WorkerSecret);
                 })
                 .Configure(app =>
@@ -316,14 +317,17 @@ public sealed class ActivityLogsApiTests : IAsyncLifetime
     }
 
     [Fact]
-    public void SqlServerMigration_AddsNullableBotAssociationWithoutBackfillingLegacyLogs()
+    public void SqlServerMigration_IncludesNullableBotAssociationAndMatchesCurrentModel()
     {
         using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer("Server=unused;Database=unused;Trusted_Connection=True;TrustServerCertificate=True").Options);
-        var migration = db.GetService<IMigrationsAssembly>().Migrations.Keys.Single(key => key.EndsWith("AddBotActivityLogBotAssociation"));
-        var sql = db.GetService<IMigrator>().GenerateScript("20261013181815_initialMigration", migration);
-        Assert.Contains("ALTER TABLE [BotActivityLogs] ADD [BotId] int NULL", sql);
-        Assert.Contains("FOREIGN KEY ([BotId]) REFERENCES [Bots] ([Id]) ON DELETE SET NULL", sql);
+        // The activity-log association is now part of the consolidated initial migration.
+        var sql = db.GetService<IMigrator>().GenerateScript();
+        var logTableStart = sql.IndexOf("CREATE TABLE [BotActivityLogs]", StringComparison.Ordinal);
+        Assert.True(logTableStart >= 0);
+        var logTableSql = sql[logTableStart..sql.IndexOf("GO", logTableStart, StringComparison.Ordinal)];
+        Assert.Contains("[BotId] int NULL", logTableSql);
+        Assert.Contains("FOREIGN KEY ([BotId]) REFERENCES [Bots] ([Id]) ON DELETE SET NULL", logTableSql);
         Assert.DoesNotContain("UPDATE [BotActivityLogs]", sql);
         Assert.False(db.Database.HasPendingModelChanges());
     }

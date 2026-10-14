@@ -18,7 +18,6 @@ namespace SaaS.Api.Controllers.v1
 {
     [ApiController]
     [Route("api/v1/worker")]
-    [BotWorkerAuthorize]
     public class WorkerController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -70,6 +69,7 @@ namespace SaaS.Api.Controllers.v1
         }
 
         [HttpPut("leads/{leadId}/status")]
+        [BotWorkerAuthorize]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -105,6 +105,7 @@ namespace SaaS.Api.Controllers.v1
         }
 
         [HttpPut("jobs/{jobId}/status")]
+        [BotWorkerAuthorize]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -141,6 +142,7 @@ namespace SaaS.Api.Controllers.v1
         }
 
         [HttpPut("accounts/{accountId}/status")]
+        [BotWorkerAuthorize]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -176,6 +178,7 @@ namespace SaaS.Api.Controllers.v1
         }
 
         [HttpPost("activity-log")]
+        [BotWorkerAuthorize]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]

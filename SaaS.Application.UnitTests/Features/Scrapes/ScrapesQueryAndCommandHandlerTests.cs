@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Models;
 using SaaS.Application.Features.Scrapes.Commands.Cancel;
 using SaaS.Application.Features.Scrapes.Queries.GetAllScrapes;
@@ -37,28 +39,85 @@ namespace SaaS.Application.UnitTests.Features.Scrapes
             var scrape1 = new Scrape { Id = 1, UserId = user1Id, BotId = 1, Status = ScrapeStatus.RUNNING.ToDbString(), StartedAt = DateTime.UtcNow.AddMinutes(-10), CollectedLeadsCount = 5 };
             var scrape2 = new Scrape { Id = 2, UserId = user1Id, BotId = 2, Status = ScrapeStatus.COMPLETED.ToDbString(), StartedAt = DateTime.UtcNow.AddMinutes(-20), CollectedLeadsCount = 15 };
             var scrape3 = new Scrape { Id = 3, UserId = user2Id, BotId = 1, Status = ScrapeStatus.RUNNING.ToDbString(), StartedAt = DateTime.UtcNow.AddMinutes(-5), CollectedLeadsCount = 2 };
+            var scrape4 = new Scrape { Id = 4, UserId = user1Id, BotId = 1, Status = ScrapeStatus.COMPLETED.ToDbString(), StartedAt = DateTime.UtcNow.AddMinutes(-30), CollectedLeadsCount = 10 };
 
-            await dbContext.Scrapes.AddRangeAsync(scrape1, scrape2, scrape3);
+            await dbContext.Scrapes.AddRangeAsync(scrape1, scrape2, scrape3, scrape4);
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
-            var handler = new GetAllScrapesQueryHandler(dbContext);
+            var userBotService = new Mock<IUserBotService>(MockBehavior.Strict);
+            userBotService.Setup(service => service.CheckOwnershipAsync(user1Id, 1, CancellationToken.None))
+                .ReturnsAsync(true);
+            var handler = new GetAllScrapesQueryHandler(dbContext, userBotService.Object);
 
-            // Act - Fetch all for user1
-            var result = await handler.Handle(new GetAllScrapesQuery(user1Id, null, 1, 10, null), CancellationToken.None);
+            // Fetch the first page for this user and bot, ordered by start time.
+            var result = await handler.Handle(new GetAllScrapesQuery(user1Id, 1, 1, 1), CancellationToken.None);
 
             // Assert
             Assert.True(result.IsSuccess);
             Assert.NotNull(result.Data);
             Assert.Equal(2, result.Data.TotalItems);
-            Assert.Equal(2, result.Data.Items.Count());
+            Assert.Equal(2, result.Data.TotalPages);
+            Assert.Equal(1, result.Data.CurrentPage);
+            Assert.Equal(1, Assert.Single(result.Data.Items).Id);
 
-            // Act - Filter by botId 1
-            var filterResult = await handler.Handle(new GetAllScrapesQuery(user1Id, 1, 1, 10, null), CancellationToken.None);
+            var secondPage = await handler.Handle(new GetAllScrapesQuery(user1Id, 1, 2, 1), CancellationToken.None);
+            Assert.True(secondPage.IsSuccess);
+            Assert.NotNull(secondPage.Data);
+            Assert.Equal(2, secondPage.Data.TotalItems);
+            Assert.Equal(2, secondPage.Data.TotalPages);
+            Assert.Equal(2, secondPage.Data.CurrentPage);
+            Assert.Equal(4, Assert.Single(secondPage.Data.Items).Id);
+
+            // Status filtering must also preserve user and bot scope.
+            var filterResult = await handler.Handle(new GetAllScrapesQuery(user1Id, 1, 1, 10, ScrapeStatus.COMPLETED.ToDbString()), CancellationToken.None);
 
             // Assert
             Assert.True(filterResult.IsSuccess);
-            Assert.Single(filterResult.Data!.Items);
-            Assert.Equal(1, filterResult.Data.Items.First().Id);
+            Assert.NotNull(filterResult.Data);
+            Assert.Equal(1, filterResult.Data.TotalItems);
+            Assert.Equal(1, filterResult.Data.TotalPages);
+            Assert.Equal(4, Assert.Single(filterResult.Data.Items).Id);
+            userBotService.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetAllScrapes_WhenUserDoesNotOwnBot_ShouldReturnNotFound()
+        {
+            using var dbContext = CreateDbContext();
+            var userId = Guid.NewGuid();
+            using var cancellation = new CancellationTokenSource();
+            var userBotService = new Mock<IUserBotService>(MockBehavior.Strict);
+            userBotService.Setup(service => service.CheckOwnershipAsync(userId, 1, cancellation.Token))
+                .ReturnsAsync(false);
+            var handler = new GetAllScrapesQueryHandler(dbContext, userBotService.Object);
+
+            var result = await handler.Handle(new GetAllScrapesQuery(userId, 1), cancellation.Token);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ErrorType.NotFound, result.ErrorType);
+            Assert.Equal("User or bot not found", result.Message);
+            Assert.Null(result.Data);
+            userBotService.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetAllScrapes_WhenNoScrapesExist_ShouldReturnEmptyPage()
+        {
+            using var dbContext = CreateDbContext();
+            var userId = Guid.NewGuid();
+            var userBotService = new Mock<IUserBotService>();
+            userBotService.Setup(service => service.CheckOwnershipAsync(userId, 1, CancellationToken.None))
+                .ReturnsAsync(true);
+            var handler = new GetAllScrapesQueryHandler(dbContext, userBotService.Object);
+
+            var result = await handler.Handle(new GetAllScrapesQuery(userId, 1), CancellationToken.None);
+
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Data);
+            Assert.Empty(result.Data.Items);
+            Assert.Equal(0, result.Data.TotalItems);
+            Assert.Equal(0, result.Data.TotalPages);
+            Assert.Equal(1, result.Data.CurrentPage);
         }
 
         [Fact]

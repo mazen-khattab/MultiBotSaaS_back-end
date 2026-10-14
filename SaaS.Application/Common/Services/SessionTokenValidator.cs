@@ -19,7 +19,7 @@ namespace SaaS.Application.Common.Services
         {
             return await _dbContext.Users
                 .AsNoTracking()
-                .Where(u => u.Id == userId)
+                .Where(u => u.Id == userId && !u.IsDeleted)
                 .Select(u => u.CurrentSessionToken)
                 .FirstOrDefaultAsync();
         }

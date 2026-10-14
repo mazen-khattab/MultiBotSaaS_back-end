@@ -223,7 +223,7 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.ProcessJobTimeouts
 
             // Worker is unreachable
             _networkClientMock.Setup(n => n.GetAsync($"jobs/{job.Id}/status", ExternalSystem.NodeWorker, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((NetworkResult)null);
+                .ReturnsAsync(NetworkResult.Fail(null, "Worker is unreachable"));
 
             var handler = CreateHandler(dbContext);
 

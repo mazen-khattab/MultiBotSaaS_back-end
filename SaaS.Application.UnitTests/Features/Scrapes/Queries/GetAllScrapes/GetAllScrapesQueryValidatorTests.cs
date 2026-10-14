@@ -27,24 +27,24 @@ namespace SaaS.Application.UnitTests.Features.Scrapes.Queries.GetAllScrapes
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact]
-        public void Validate_WhenBotIdIsNull_ShouldNotHaveValidationErrorForBotId()
-        {
-            // Arrange
-            var query = new GetAllScrapesQuery(Guid.NewGuid(), null, 1, 10);
+        //[Fact]
+        //public void Validate_WhenBotIdIsNull_ShouldNotHaveValidationErrorForBotId()
+        //{
+        //    // Arrange
+        //    var query = new GetAllScrapesQuery(Guid.NewGuid(), null, 1, 10);
 
-            // Act
-            var result = _validator.TestValidate(query);
+        //    // Act
+        //    var result = _validator.TestValidate(query);
 
-            // Assert
-            result.ShouldNotHaveValidationErrorFor(x => x.BotId);
-        }
+        //    // Assert
+        //    result.ShouldNotHaveValidationErrorFor(x => x.BotId);
+        //}
 
         [Fact]
         public void Validate_WhenUserIdIsEmpty_ShouldHaveValidationError()
         {
             // Arrange
-            var query = new GetAllScrapesQuery(Guid.Empty, null, 1, 10);
+            var query = new GetAllScrapesQuery(Guid.Empty, 1, 1, 10);
 
             // Act
             var result = _validator.TestValidate(query);
@@ -74,7 +74,7 @@ namespace SaaS.Application.UnitTests.Features.Scrapes.Queries.GetAllScrapes
         public void Validate_WhenPageNumberIsLessThanOne_ShouldHaveValidationError(int invalidPageNumber)
         {
             // Arrange
-            var query = new GetAllScrapesQuery(Guid.NewGuid(), null, invalidPageNumber, 10);
+            var query = new GetAllScrapesQuery(Guid.NewGuid(), 1, invalidPageNumber, 10);
 
             // Act
             var result = _validator.TestValidate(query);
@@ -89,7 +89,7 @@ namespace SaaS.Application.UnitTests.Features.Scrapes.Queries.GetAllScrapes
         public void Validate_WhenPageSizeIsOutOfRange_ShouldHaveValidationError(int invalidPageSize)
         {
             // Arrange
-            var query = new GetAllScrapesQuery(Guid.NewGuid(), null, 1, invalidPageSize);
+            var query = new GetAllScrapesQuery(Guid.NewGuid(), 1, 1, invalidPageSize);
 
             // Act
             var result = _validator.TestValidate(query);

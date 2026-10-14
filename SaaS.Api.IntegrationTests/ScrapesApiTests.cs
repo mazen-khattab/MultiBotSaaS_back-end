@@ -216,7 +216,7 @@ public sealed class ScrapesApiTests : IAsyncLifetime
     public async Task ListAndDetails_AreScopedToAuthenticatedUser()
     {
         await SeedScrapes();
-        using var list = await Send(HttpMethod.Get, Route, _userId);
+        using var list = await Send(HttpMethod.Get, $"{Route}?botId=100", _userId);
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         var page = (await list.Content.ReadFromJsonAsync<ApiResponse<PaginatedResult<ScrapeDto>>>())!.Data!;
         Assert.Equal(1, page.TotalItems);

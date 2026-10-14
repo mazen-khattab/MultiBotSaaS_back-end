@@ -8,28 +8,33 @@ using SaaS.Application.Common.Dtos;
 using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Models;
 using SaaS.Application.Mapper;
+using SaaS.Domain.Enums;
 
 namespace SaaS.Application.Features.Scrapes.Queries.GetAllScrapes
 {
     public class GetAllScrapesQueryHandler : IRequestHandler<GetAllScrapesQuery, ApiResponse<PaginatedResult<ScrapeDto>>>
     {
         private readonly IAppDbContext _context;
+        private readonly IUserBotService _userBotService;
 
-        public GetAllScrapesQueryHandler(IAppDbContext context)
+        public GetAllScrapesQueryHandler(IAppDbContext context, IUserBotService userBotService)
         {
             _context = context;
+            _userBotService = userBotService;
         }
 
         public async Task<ApiResponse<PaginatedResult<ScrapeDto>>> Handle(GetAllScrapesQuery request, CancellationToken cancellationToken)
         {
+            var hasOwnership = await _userBotService.CheckOwnershipAsync(request.UserId, request.BotId, cancellationToken);
+
+            if (!hasOwnership)
+            {
+                return ApiResponse<PaginatedResult<ScrapeDto>>.Failure("User or bot not found", ErrorType.NotFound);
+            }
+
             var query = _context.Scrapes
                 .AsNoTracking()
-                .Where(candidate => candidate.UserId == request.UserId);
-
-            if (request.BotId.HasValue && request.BotId.Value > 0)
-            {
-                query = query.Where(candidate => candidate.BotId == request.BotId.Value);
-            }
+                .Where(candidate => candidate.UserId == request.UserId && candidate.BotId == request.BotId);
 
             if (!string.IsNullOrWhiteSpace(request.StatusFilter))
             {

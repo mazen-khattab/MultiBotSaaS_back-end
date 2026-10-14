@@ -12,7 +12,7 @@ namespace SaaS.Application.Features.Scrapes.Queries.GetAllScrapes
                 .NotEqual(Guid.Empty).WithMessage("A valid user Id must be provided.");
 
             RuleFor(x => x.BotId)
-                .GreaterThan(0).When(x => x.BotId.HasValue).WithMessage("BotId must be greater than 0.");
+                .GreaterThan(0).NotEmpty().WithMessage("BotId must be greater than 0.");
 
             RuleFor(x => x.PageNumber)
                 .GreaterThanOrEqualTo(1).WithMessage("PageNumber must be at least 1.");

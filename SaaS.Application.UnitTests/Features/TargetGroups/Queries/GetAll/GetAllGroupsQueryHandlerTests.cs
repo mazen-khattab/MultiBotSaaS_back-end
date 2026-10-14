@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Models;
 using SaaS.Application.Features.TargetGroups.Queries.GetAll;
 using SaaS.Application.UnitTests.Common;
@@ -23,20 +25,25 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetAll
         }
 
         [Fact]
-        public async Task Handle_WhenNoGroupsFoundForUser_ShouldReturnNotFoundFailure()
+        public async Task Handle_WhenNoGroupsFoundForUser_ShouldReturnEmptyList()
         {
             // Arrange
             using var dbContext = CreateDbContext();
-            var handler = new GetAllGroupsQueryHandler(dbContext);
-            var query = new GetAllGroupsQuery(Guid.NewGuid(), 1);
+            var userId = Guid.NewGuid();
+            var userBotService = new Mock<IUserBotService>();
+            userBotService.Setup(service => service.CheckOwnershipAsync(userId, 1, CancellationToken.None))
+                .ReturnsAsync(true);
+            var handler = new GetAllGroupsQueryHandler(dbContext, userBotService.Object);
+            var query = new GetAllGroupsQuery(userId, 1);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
 
             // Assert
-            Assert.False(result.IsSuccess);
-            Assert.Equal(ErrorType.NotFound, result.ErrorType);
-            Assert.Equal("No target groups found for the specified user", result.Message);
+            Assert.True(result.IsSuccess);
+            Assert.NotNull(result.Data);
+            Assert.Empty(result.Data);
+            Assert.Equal("No target groups found", result.Message);
         }
 
         [Fact]
@@ -91,7 +98,10 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetAll
             await dbContext.TargetGroups.AddRangeAsync(group1, group2, differentBotGroup, otherUserGroup);
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
-            var handler = new GetAllGroupsQueryHandler(dbContext);
+            var userBotService = new Mock<IUserBotService>();
+            userBotService.Setup(service => service.CheckOwnershipAsync(userId, botId, CancellationToken.None))
+                .ReturnsAsync(true);
+            var handler = new GetAllGroupsQueryHandler(dbContext, userBotService.Object);
             var query = new GetAllGroupsQuery(userId, botId);
 
             // Act
@@ -107,6 +117,26 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Queries.GetAll
             Assert.Contains(result.Data, g => g.Id == 2 && g.GroupName == "Group 2" && !g.IsActive);
             Assert.DoesNotContain(result.Data, g => g.Id == 3);
             Assert.DoesNotContain(result.Data, g => g.Id == 4);
+        }
+
+        [Fact]
+        public async Task Handle_WhenUserDoesNotOwnBot_ShouldReturnNotFoundFailure()
+        {
+            using var dbContext = CreateDbContext();
+            var userId = Guid.NewGuid();
+            using var cancellation = new CancellationTokenSource();
+            var userBotService = new Mock<IUserBotService>(MockBehavior.Strict);
+            userBotService.Setup(service => service.CheckOwnershipAsync(userId, 1, cancellation.Token))
+                .ReturnsAsync(false);
+            var handler = new GetAllGroupsQueryHandler(dbContext, userBotService.Object);
+
+            var result = await handler.Handle(new GetAllGroupsQuery(userId, 1), cancellation.Token);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ErrorType.NotFound, result.ErrorType);
+            Assert.Equal("User or bot not found", result.Message);
+            Assert.Null(result.Data);
+            userBotService.VerifyAll();
         }
     }
 }

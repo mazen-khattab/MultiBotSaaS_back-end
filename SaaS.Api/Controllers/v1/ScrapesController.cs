@@ -30,11 +30,7 @@ namespace SaaS.Api.Controllers.v1
         /// </summary>
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<object>> GetAll(
-            [FromQuery] int? botId = null,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? statusFilter = null)
+        public async Task<ActionResult<object>> GetAll([FromQuery] int botId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? statusFilter = null)
         {
             var userId = GetUserId();
             var query = new GetAllScrapesQuery(userId, botId, pageNumber, pageSize, statusFilter);

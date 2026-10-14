@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Features.ConnectedAccounts.Queries.GetAll;
 using SaaS.Application.UnitTests.Common;
 using SaaS.Domain.Entities;
@@ -83,7 +85,10 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
             await dbContext.ConnectedAccounts.AddRangeAsync(account1, account2, differentBotAccount, otherUserAccount);
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
-            var handler = new GetAllConnectedAccountsQueryHandler(dbContext);
+            var userBotService = new Mock<IUserBotService>();
+            userBotService.Setup(service => service.CheckOwnershipAsync(targetUserId, botId, CancellationToken.None))
+                .ReturnsAsync(true);
+            var handler = new GetAllConnectedAccountsQueryHandler(dbContext, userBotService.Object);
             var query = new GetAllConnectedAccountsQuery(targetUserId, botId);
 
             // Act
@@ -102,13 +107,16 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
         }
 
         [Fact]
-        public async Task Handle_WhenNoAccountsExistForUser_ReturnsNotFoundFailure()
+        public async Task Handle_WhenNoAccountsExistForUser_ReturnsEmptyList()
         {
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
             var userIdWithNoAccounts = Guid.NewGuid();
 
-            var handler = new GetAllConnectedAccountsQueryHandler(dbContext);
+            var userBotService = new Mock<IUserBotService>();
+            userBotService.Setup(service => service.CheckOwnershipAsync(userIdWithNoAccounts, 1, CancellationToken.None))
+                .ReturnsAsync(true);
+            var handler = new GetAllConnectedAccountsQueryHandler(dbContext, userBotService.Object);
             var query = new GetAllConnectedAccountsQuery(userIdWithNoAccounts, 1);
 
             // Act
@@ -116,9 +124,29 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetAll
 
             // Assert
             result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().NotBeNull().And.BeEmpty();
+            result.Message.Should().Be("No connected accounts found");
+        }
+
+        [Fact]
+        public async Task Handle_WhenUserDoesNotOwnBot_ReturnsNotFoundFailure()
+        {
+            using var dbContext = CreateInMemoryDbContext();
+            var userId = Guid.NewGuid();
+            using var cancellation = new CancellationTokenSource();
+            var userBotService = new Mock<IUserBotService>(MockBehavior.Strict);
+            userBotService.Setup(service => service.CheckOwnershipAsync(userId, 1, cancellation.Token))
+                .ReturnsAsync(false);
+            var handler = new GetAllConnectedAccountsQueryHandler(dbContext, userBotService.Object);
+
+            var result = await handler.Handle(new GetAllConnectedAccountsQuery(userId, 1), cancellation.Token);
+
             result.IsSuccess.Should().BeFalse();
             result.ErrorType.Should().Be(ErrorType.NotFound);
-            result.Message.Should().Be("No connected accounts found for the specified user");
+            result.Message.Should().Be("User or bot not found");
+            result.Data.Should().BeNull();
+            userBotService.VerifyAll();
         }
     }
 }

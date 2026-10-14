@@ -121,12 +121,12 @@ public sealed class AdminBotsApiTests : IAsyncLifetime
         Assert.Equal("Updated bot", updated.Name); Assert.Equal("Ready module", updated.Description);
         Assert.Equal(29.99m, updated.CurrentPrice); Assert.Equal(60, updated.CooldownMinutes);
         Assert.False(updated.IsActive); Assert.Equal(bot.UiModuleCode, updated.UiModuleCode);
-        var active = await ReadBot(await Send(HttpMethod.Post, $"{Route}/{bot.Id}/activate", role: role));
+        var active = await ReadBot(await Send(HttpMethod.Put, $"{Route}/{bot.Id}/activate", role: role));
         Assert.True(active.IsActive); Assert.Equal("Active", active.Status);
-        Assert.True((await ReadBot(await Send(HttpMethod.Post, $"{Route}/{bot.Id}/activate", role: role))).IsActive);
-        var inactive = await ReadBot(await Send(HttpMethod.Post, $"{Route}/{bot.Id}/deactivate", role: role));
+        Assert.True((await ReadBot(await Send(HttpMethod.Put, $"{Route}/{bot.Id}/activate", role: role))).IsActive);
+        var inactive = await ReadBot(await Send(HttpMethod.Put, $"{Route}/{bot.Id}/deactivate", role: role));
         Assert.False(inactive.IsActive); Assert.Equal("Inactive", inactive.Status);
-        Assert.False((await ReadBot(await Send(HttpMethod.Post, $"{Route}/{bot.Id}/deactivate", role: role))).IsActive);
+        Assert.False((await ReadBot(await Send(HttpMethod.Put, $"{Route}/{bot.Id}/deactivate", role: role))).IsActive);
         await WithDb(async db =>
         {
             Assert.Equal(1, await db.UserBots.CountAsync());
@@ -156,9 +156,9 @@ public sealed class AdminBotsApiTests : IAsyncLifetime
         var bot = await ReadBot(await Send(HttpMethod.Post, Route,
             new { name = "Future module", uiModuleCode = "FUTURE-CATALOG", currentPrice = 0 }));
         Assert.DoesNotContain(await UserCatalog(), item => item.Id == bot.Id);
-        await ReadBot(await Send(HttpMethod.Post, $"{Route}/{bot.Id}/activate"));
+        await ReadBot(await Send(HttpMethod.Put, $"{Route}/{bot.Id}/activate"));
         Assert.Contains(await UserCatalog(), item => item.Id == bot.Id && item.UiModuleCode == "FUTURE-CATALOG");
-        await ReadBot(await Send(HttpMethod.Post, $"{Route}/{bot.Id}/deactivate"));
+        await ReadBot(await Send(HttpMethod.Put, $"{Route}/{bot.Id}/deactivate"));
         Assert.DoesNotContain(await UserCatalog(), item => item.Id == bot.Id);
     }
 
@@ -394,7 +394,7 @@ public sealed class AdminBotsApiTests : IAsyncLifetime
         "detail" => (HttpMethod.Get, $"{Route}/{id}", null),
         "create" => (HttpMethod.Post, Route, new { name = "Created", uiModuleCode = "CREATED-BOT", currentPrice = 0 }),
         "update" => (HttpMethod.Put, $"{Route}/{id}", new { name = "Updated", currentPrice = 0 }),
-        _ => (HttpMethod.Post, $"{Route}/{id}/{operation}", null)
+        _ => (HttpMethod.Put, $"{Route}/{id}/{operation}", null)
     };
 
     private async Task<List<BotDto>> UserCatalog()

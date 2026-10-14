@@ -34,10 +34,8 @@ public class UserBotConfiguration : IEntityTypeConfiguration<UserBot>
             .HasForeignKey(ub => ub.BotId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        //builder.HasIndex(ub => ub.UserId)
-        //    .HasDatabaseName("IX_UserBots_UserId");
-
-        //builder.HasIndex(ub => ub.BotId)
-        //    .HasDatabaseName("IX_UserBots_BotId");
+        builder.HasIndex(ub => new { ub.UserId, ub.BotId })
+            .IsUnique()
+            .HasDatabaseName("IX_UserBots_UserId_BotId");
     }
 }

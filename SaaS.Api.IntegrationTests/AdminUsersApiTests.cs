@@ -74,6 +74,7 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
                     services.AddScoped<ITokenService, TokenService>();
                     services.AddScoped<IAuthSessionService, AuthSessionService>();
                     services.AddScoped<ISessionTokenValidator, SessionTokenValidator>();
+                    services.AddScoped<IAdminUserPersistenceService, AdminUserPersistenceService>();
                 })
                 .Configure(app =>
                 {
@@ -129,9 +130,9 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
         var updated = await ReadUser(await Send(HttpMethod.Put, $"{Route}/{user.Id}", new
             { fullName = "Edited User", email = "edited@example.test", phoneNumber = "789" }, role));
         Assert.Equal("Edited User", updated.FullName); Assert.Equal(user.CreatedAt, updated.CreatedAt);
-        var inactive = await ReadUser(await Send(HttpMethod.Post, $"{Route}/{user.Id}/deactivate", role: role));
+        var inactive = await ReadUser(await Send(HttpMethod.Put, $"{Route}/{user.Id}/deactivate", role: role));
         Assert.True(inactive.IsDeleted);
-        var active = await ReadUser(await Send(HttpMethod.Post, $"{Route}/{user.Id}/reactivate", role: role));
+        var active = await ReadUser(await Send(HttpMethod.Put, $"{Route}/{user.Id}/reactivate", role: role));
         Assert.False(active.IsDeleted);
         await WithDb(async db =>
         {
@@ -259,7 +260,7 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
         await AssertError(conflict, HttpStatusCode.Conflict);
         await WithDb(async db => Assert.Equal("Alice Owner", (await db.Users.FindAsync(_userId))!.FullName));
         var result = await ReadUser(await Send(HttpMethod.Put, $"{Route}/{_userId}",
-            new { fullName = "Updated", email = "alice@example.test" }));
+            new { fullName = "Updated", email = "alice@example.test", phoneNumber = "" }));
         Assert.Equal("", result.PhoneNumber);
         await WithDb(async db =>
         {
@@ -273,7 +274,7 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
     [Fact]
     public async Task Deactivate_BlocksLoginRefreshAndExistingSession_ReactivateRequiresFreshLogin()
     {
-        var inactive = await ReadUser(await Send(HttpMethod.Post, $"{Route}/{_userId}/deactivate"));
+        var inactive = await ReadUser(await Send(HttpMethod.Put, $"{Route}/{_userId}/deactivate"));
         Assert.True(inactive.IsDeleted);
         await WithDb(async db =>
         {
@@ -291,8 +292,8 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, refresh.StatusCode);
 
         // Repeating either operation is safe. Old cookies remain invalid after reactivation.
-        Assert.True((await ReadUser(await Send(HttpMethod.Post, $"{Route}/{_userId}/deactivate"))).IsDeleted);
-        Assert.False((await ReadUser(await Send(HttpMethod.Post, $"{Route}/{_userId}/reactivate"))).IsDeleted);
+        Assert.True((await ReadUser(await Send(HttpMethod.Put, $"{Route}/{_userId}/deactivate"))).IsDeleted);
+        Assert.False((await ReadUser(await Send(HttpMethod.Put, $"{Route}/{_userId}/reactivate"))).IsDeleted);
         using var oldSession = await Send(HttpMethod.Get, "/api/v1/auth/me", role: "User", actorId: _userId);
         Assert.Equal(HttpStatusCode.Unauthorized, oldSession.StatusCode);
         using var oldRefresh = await RefreshSession(Refresh);
@@ -303,7 +304,7 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
         me.Headers.Add("Cookie", Cookies(fresh));
         using var authenticated = await _client.SendAsync(me);
         Assert.Equal(HttpStatusCode.OK, authenticated.StatusCode);
-        Assert.False((await ReadUser(await Send(HttpMethod.Post, $"{Route}/{_userId}/reactivate"))).IsDeleted);
+        Assert.False((await ReadUser(await Send(HttpMethod.Put, $"{Route}/{_userId}/reactivate"))).IsDeleted);
         await WithDb(async db => Assert.NotNull((await db.Users.FindAsync(_userId))!.CurrentSessionToken));
     }
 
@@ -401,8 +402,8 @@ public sealed class AdminUsersApiTests : IAsyncLifetime
         "list" => (HttpMethod.Get, Route, null),
         "detail" => (HttpMethod.Get, $"{Route}/{_userId}", null),
         "create" => (HttpMethod.Post, Route, new { fullName = "New", email = "new@example.test", password = Password }),
-        "update" => (HttpMethod.Put, $"{Route}/{_userId}", new { fullName = "Updated", email = "alice@example.test" }),
-        _ => (HttpMethod.Post, $"{Route}/{_userId}/{operation}", null)
+        "update" => (HttpMethod.Put, $"{Route}/{_userId}", new { fullName = "Updated", email = "alice@example.test", phoneNumber = "" }),
+        _ => (HttpMethod.Put, $"{Route}/{_userId}/{operation}", null)
     };
 
     private Task<HttpResponseMessage> Login(string email) => Send(HttpMethod.Post, "/api/v1/auth/login",

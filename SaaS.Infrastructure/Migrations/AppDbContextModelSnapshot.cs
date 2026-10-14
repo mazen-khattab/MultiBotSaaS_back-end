@@ -648,7 +648,9 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.HasIndex("BotId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "BotId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserBots_UserId_BotId");
 
                     b.ToTable("UserBots", (string)null);
                 });

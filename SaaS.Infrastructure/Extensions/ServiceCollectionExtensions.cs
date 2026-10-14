@@ -35,6 +35,7 @@ namespace SaaS.Infrastructure.Extensions
             services.AddScoped<IUserBotService, UserBotService>();
             services.AddScoped<IAdminUserPersistenceService, AdminUserPersistenceService>();
             services.AddScoped<IAdminBotPersistenceService, AdminBotPersistenceService>();
+            services.AddScoped<IAdminSubscriptionPersistenceService, AdminSubscriptionPersistenceService>();
 
             services.AddScoped<IExternalSystemRequestStrategy, N8nRequestStrategy>();
             services.AddScoped<IExternalSystemRequestStrategy, NodeWorkerRequestStrategy>();

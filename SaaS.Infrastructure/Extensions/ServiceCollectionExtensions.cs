@@ -33,6 +33,8 @@ namespace SaaS.Infrastructure.Extensions
             services.AddScoped<IPasswordHasherService, PasswordHasherService>();
             services.AddScoped<IAuthSessionService, AuthSessionService>();
             services.AddScoped<IUserBotService, UserBotService>();
+            services.AddScoped<IAdminUserPersistenceService, AdminUserPersistenceService>();
+            services.AddScoped<IAdminBotPersistenceService, AdminBotPersistenceService>();
 
             services.AddScoped<IExternalSystemRequestStrategy, N8nRequestStrategy>();
             services.AddScoped<IExternalSystemRequestStrategy, NodeWorkerRequestStrategy>();

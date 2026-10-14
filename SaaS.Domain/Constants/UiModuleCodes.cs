@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace SaaS.Domain.Constants
 {
     /// <summary>
-    /// Centralized registry of valid UI Module Codes supported by the frontend bot registry.
+    /// Known seed codes and the format shared by dynamically created frontend modules.
     /// </summary>
     public static class UiModuleCodes
     {
@@ -12,14 +12,10 @@ namespace SaaS.Domain.Constants
         public const string FbPostsScraper = "FB-POSTS-SCRAPER";
         public const string FbMembersMessagesScraper = "FB-MEMBERS-MESSAGES-SCRAPER";
 
-        public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            FbMembersScraper,
-            FbPostsScraper,
-            FbMembersMessagesScraper
-        };
+        public static string Normalize(string code) => code.Trim().ToUpperInvariant();
 
         public static bool IsValid(string? code) =>
-            !string.IsNullOrWhiteSpace(code) && All.Contains(code.Trim());
+            !string.IsNullOrWhiteSpace(code) && Normalize(code).Length <= 50 &&
+            Regex.IsMatch(Normalize(code), @"\A[A-Z0-9]+(?:-[A-Z0-9]+)*\z", RegexOptions.CultureInvariant);
     }
 }

@@ -31,8 +31,13 @@ public class BotConfiguration : IEntityTypeConfiguration<Bot>
             .IsRequired()
             .HasColumnType("varchar(50)");
 
+        builder.HasIndex(b => b.UiModuleCode)
+            .IsUnique()
+            .HasDatabaseName("IX_Bots_UiModuleCode");
+
         builder.Property(b => b.CooldownMinutes)
             .IsRequired()
+            .HasSentinel(-1)
             .HasDefaultValue(180);
 
         builder.Property(b => b.IsActive)

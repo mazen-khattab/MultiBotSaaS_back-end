@@ -62,6 +62,10 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UiModuleCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Bots_UiModuleCode");
+
                     b.ToTable("Bots", (string)null);
                 });
 

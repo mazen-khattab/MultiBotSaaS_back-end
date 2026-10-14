@@ -173,7 +173,7 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
             account.Status = AccountStatus.BUSY.ToDbString();
             account.LastStatusUpdatedAt = DateTime.UtcNow;
 
-            // 1. Save Scrape to DB (Without holding transaction open during HTTP call)
+            // 1. TrySaveChangesAsync Scrape to DB (Without holding transaction open during HTTP call)
             await _context.Scrapes.AddAsync(scrape, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 

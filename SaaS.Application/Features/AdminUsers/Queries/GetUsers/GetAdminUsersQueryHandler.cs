@@ -18,8 +18,8 @@ public sealed class GetAdminUsersQueryHandler(IAppDbContext db)
             users = users.Where(user => user.IsDeleted == request.IsDeleted.Value);
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var search = request.Search.Trim().ToUpperInvariant();
-            users = users.Where(user => user.FullName.ToUpper().Contains(search) || user.Email.ToUpper().Contains(search));
+            var search = request.Search.Trim();
+            users = users.Where(user => user.FullName.Contains(search) || user.Email.Contains(search));
         }
 
         var count = await users.CountAsync(cancellationToken);

@@ -169,7 +169,7 @@ namespace SaaS.Api.Controllers.v1
             return StatusCode(statusCode, errorResponse);
         }
 
-        [HttpPost("{id:guid}/deactivate")]
+        [HttpPut("{id:guid}/deactivate")]
         public async Task<ActionResult<object>> Deactivate(Guid id, CancellationToken cancellationToken)
         {
             var authorizationError = await ValidateAdminAsync(cancellationToken);
@@ -201,7 +201,7 @@ namespace SaaS.Api.Controllers.v1
             return StatusCode(statusCode, errorResponse);
         }
 
-        [HttpPost("{id:guid}/reactivate")]
+        [HttpPut("{id:guid}/reactivate")]
         public async Task<ActionResult<object>> Reactivate(Guid id, CancellationToken cancellationToken)
         {
             var authorizationError = await ValidateAdminAsync(cancellationToken);

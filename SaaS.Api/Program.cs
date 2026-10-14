@@ -2,6 +2,8 @@
 using API.Middleware;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using SaaS.Api.Configuration;
+using SaaS.Api.Extensions;
 using SaaS.Api.Middlewares;
 using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Settings;
@@ -15,6 +17,8 @@ using System.Data;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddFrontendCors(builder.Configuration, builder.Environment);
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -49,27 +53,6 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 
 builder.Services.AddMediatRWithValidation();
 
-#region CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(
-        "FrontendPolicy",
-        policy =>
-        {
-            policy.WithOrigins(
-                   "http://localhost:5173",
-                   "https://mazenkhtab321.app.n8n.cloud/webhook-test/5c2de115-1f5c-41ab-a572-be60392aea3f",
-                   "https://mazenkhtab321.app.n8n.cloud/webhook-test",
-                   "https://mazenkhtab321.app.n8n.cloud",
-                   "http://localhost:3000"
-               )
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials();
-        });
-});
-#endregion
-
 var app = builder.Build();
 
 #region DataSeeding
@@ -103,7 +86,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
-app.UseCors("FrontendPolicy");
+app.UseCors(FrontendCorsSettings.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 

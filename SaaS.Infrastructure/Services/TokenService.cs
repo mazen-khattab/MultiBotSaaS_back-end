@@ -177,11 +177,10 @@ namespace SaaS.Infrastructure.Services
         private CookieOptions BuildCookieOptions(DateTimeOffset expires) => new()
         {
             HttpOnly = true,
-            // Driven by ASPNETCORE_ENVIRONMENT, set automatically by the runtime -
-            // unlike a config key, there's no way for this to be silently missing
-            // and defaulting to false in a real production deployment.
+            // SameSite=None requires Secure; use the API's HTTPS origin for cookie requests.
             Secure = true,
             SameSite = SameSiteMode.None,
+            Path = "/",
             Expires = expires
         };
     }

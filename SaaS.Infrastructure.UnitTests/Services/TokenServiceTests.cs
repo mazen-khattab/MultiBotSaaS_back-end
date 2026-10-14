@@ -211,11 +211,13 @@ namespace SaaS.Infrastructure.UnitTests.Services
             act.Should().NotThrow();
         }
 
-        [Fact]
-        public void SetAuthCookies_ShouldAppendCookiesWithCorrectOptions_InProduction()
+        [Theory]
+        [InlineData("Production")]
+        [InlineData("Staging")]
+        public void SetAuthCookies_ShouldAppendCookiesWithCorrectOptions(string environment)
         {
             // Arrange
-            _mockEnvironment.Setup(x => x.EnvironmentName).Returns("Production");
+            _mockEnvironment.Setup(x => x.EnvironmentName).Returns(environment);
             var httpContext = new DefaultHttpContext();
             _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 
@@ -233,12 +235,16 @@ namespace SaaS.Infrastructure.UnitTests.Services
             accessCookie.Should().Contain("httponly");
             accessCookie.Should().Contain("secure");
             accessCookie.Should().Contain("samesite=none");
+            accessCookie.Should().Contain("path=/");
+            accessCookie.Should().NotContain("domain=");
 
             var refreshCookie = setCookieHeaders.FirstOrDefault(h => h!.Contains(TokenService.RefreshTokenCookieName));
             refreshCookie.Should().NotBeNull();
             refreshCookie.Should().Contain("httponly");
             refreshCookie.Should().Contain("secure");
             refreshCookie.Should().Contain("samesite=none");
+            refreshCookie.Should().Contain("path=/");
+            refreshCookie.Should().NotContain("domain=");
         }
 
         [Fact]
@@ -262,6 +268,7 @@ namespace SaaS.Infrastructure.UnitTests.Services
             accessCookie.Should().NotBeNull();
             accessCookie.Should().Contain("secure");
             accessCookie.Should().Contain("samesite=none");
+            accessCookie.Should().Contain("path=/");
         }
 
         [Fact]
@@ -298,10 +305,12 @@ namespace SaaS.Infrastructure.UnitTests.Services
             var accessCookie = setCookieHeaders.FirstOrDefault(h => h!.Contains(TokenService.AccessTokenCookieName));
             accessCookie.Should().NotBeNull();
             accessCookie.Should().Contain("expires=");
+            accessCookie.Should().Contain("path=/");
 
             var refreshCookie = setCookieHeaders.FirstOrDefault(h => h!.Contains(TokenService.RefreshTokenCookieName));
             refreshCookie.Should().NotBeNull();
             refreshCookie.Should().Contain("expires=");
+            refreshCookie.Should().Contain("path=/");
         }
 
         [Fact]

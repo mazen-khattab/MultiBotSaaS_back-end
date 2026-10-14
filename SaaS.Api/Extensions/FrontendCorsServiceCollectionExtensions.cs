@@ -5,8 +5,7 @@ namespace SaaS.Api.Extensions;
 
 public static class FrontendCorsServiceCollectionExtensions
 {
-    public static IServiceCollection AddFrontendCors(this IServiceCollection services,
-        IConfiguration configuration, IHostEnvironment environment)
+    public static IServiceCollection AddFrontendCors(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         var settings = configuration.GetSection(FrontendCorsSettings.SectionName).Get<FrontendCorsSettings>() ?? new();
         var origins = new List<string>();

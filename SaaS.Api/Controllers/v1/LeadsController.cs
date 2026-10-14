@@ -6,6 +6,7 @@ using SaaS.Api.Extensions;
 using SaaS.Application.Common.Models;
 using SaaS.Application.Features.Leads.Queries.GetAllLeads;
 using SaaS.Application.Features.Leads.Queries.GetAllowedPendingLeads;
+using SaaS.Application.Features.Leads.Queries.GetLeadById;
 using System.Security.Claims;
 
 namespace SaaS.Api.Controllers.v1
@@ -23,6 +24,36 @@ namespace SaaS.Api.Controllers.v1
         }
 
         private Guid GetUserId() => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : Guid.Empty;
+
+        [HttpGet("{leadId:long}")]
+        public async Task<ActionResult<object>> GetById(long leadId, CancellationToken cancellationToken)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized();
+
+            var query = new GetLeadByIdQuery(userId, leadId);
+            var result = await _sender.Send(query, cancellationToken);
+
+            if (result is not null && result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            int statusCode = result!.ErrorType.ToHttpStatusCode();
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result?.Message ?? "Failure during operation.",
+                Path = HttpContext.Request.Path,
+                Method = HttpContext.Request.Method,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return StatusCode(statusCode, errorResponse);
+        }
 
         [HttpGet("leads/{botId}")]
         public async Task<ActionResult<object>> GetAll(int botId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? statusFilter = null)

@@ -13,6 +13,21 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Delete
 {
     public class DeleteGroupCommandHandlerTests
     {
+        [Fact]
+        public async Task Handle_WhenGroupBelongsToAnotherUser_ShouldNotDeleteIt()
+        {
+            using var dbContext = CreateDbContext();
+            dbContext.TargetGroups.Add(new TargetGroup { Id = 1, UserId = Guid.NewGuid() });
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+
+            var result = await new DeleteGroupCommandHandler(dbContext).Handle(
+                new DeleteGroupCommand(Guid.NewGuid(), 1), CancellationToken.None);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ErrorType.NotFound, result.ErrorType);
+            Assert.NotNull(await dbContext.TargetGroups.FindAsync(1));
+        }
+
         private MockAppDbContext CreateDbContext()
         {
             var options = new DbContextOptionsBuilder<MockAppDbContext>()
@@ -28,7 +43,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Delete
             // Arrange
             using var dbContext = CreateDbContext();
             var handler = new DeleteGroupCommandHandler(dbContext);
-            var command = new DeleteGroupCommand(999);
+            var command = new DeleteGroupCommand(Guid.NewGuid(), 999);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -58,7 +73,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Delete
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new DeleteGroupCommandHandler(dbContext);
-            var command = new DeleteGroupCommand(group.Id);
+            var command = new DeleteGroupCommand(group.UserId, group.Id);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);

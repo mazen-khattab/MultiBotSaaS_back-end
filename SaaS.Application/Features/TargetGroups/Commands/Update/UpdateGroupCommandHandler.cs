@@ -5,25 +5,34 @@ using Microsoft.EntityFrameworkCore;
 using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Models;
 using SaaS.Application.Mapper;
+using SaaS.Domain.Enums;
 
 namespace SaaS.Application.Features.TargetGroups.Commands.Update
 {
     public class UpdateGroupCommandHandler : IRequestHandler<UpdateGroupCommand, ApiResponse<bool>>
     {
         private readonly IAppDbContext _context;
+        private readonly IUserBotService _userBotService;
 
-        public UpdateGroupCommandHandler(IAppDbContext context)
+        public UpdateGroupCommandHandler(IAppDbContext context, IUserBotService userBotService)
         {
             _context = context;
+            _userBotService = userBotService;
         }
 
         public async Task<ApiResponse<bool>> Handle(UpdateGroupCommand request, CancellationToken cancellationToken)
         {
-            var entity = await _context.TargetGroups.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            var hasOwnership = await _userBotService.CheckOwnershipAsync(request.UserId, request.Id, cancellationToken);
+            if(!hasOwnership)
+            {
+                return ApiResponse<bool>.Failure("User or bot not found", ErrorType.Unauthorized);
+            }
+
+            var entity = await _context.TargetGroups.FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId, cancellationToken);
 
             if (entity == null)
             {
-                return ApiResponse<bool>.Failure("Target group not found", Domain.Enums.ErrorType.NotFound);
+                return ApiResponse<bool>.Failure("Target group not found", ErrorType.NotFound);
             }
 
             //entity.GroupName = request.GroupDto.GroupName;

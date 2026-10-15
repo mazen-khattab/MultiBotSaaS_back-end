@@ -32,8 +32,7 @@ namespace SaaS.Application.Features.Leads.Queries.GetLeadById
                 .SingleOrDefaultAsync(cancellationToken);
 
             // Nullable bot links use SetNull on deletion; the lead's owner can still read that history.
-            if (lead == null || (lead.BotId.HasValue &&
-                !await _userBotService.CheckOwnershipAsync(request.UserId, lead.BotId.Value, cancellationToken)))
+            if (lead == null || (lead.BotId.HasValue && !await _userBotService.CheckOwnershipAsync(request.UserId, lead.BotId.Value, cancellationToken)))
             {
                 return ApiResponse<LeadDetailsDto>.Failure("Lead not found.", ErrorType.NotFound);
             }

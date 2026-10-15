@@ -6,6 +6,8 @@ namespace SaaS.Application.Features.TargetGroups.Commands.Delete
     {
         public DeleteGroupCommandValidator()
         {
+            RuleFor(x => x.UserId).NotEmpty().WithMessage("UserId is required.");
+
             RuleFor(x => x.Id)
                 .GreaterThan(0)
                 .WithMessage("A valid group Id must be provided.");

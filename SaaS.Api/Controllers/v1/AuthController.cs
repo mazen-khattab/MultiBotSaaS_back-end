@@ -74,7 +74,6 @@ namespace SaaS.Api.Controllers.v1
         {
             _logger.LogInformation("Attempting to refresh token for user.");
             var refreshToken = _tokenService.GetCookiesRefreshToken();
-            _logger.LogInformation("Refresh token retrieved from cookies: {RefreshToken}", refreshToken);
 
             if (string.IsNullOrWhiteSpace(refreshToken))
             {

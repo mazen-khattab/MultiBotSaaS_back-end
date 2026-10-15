@@ -20,7 +20,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Delete
         public void Validate_WhenIdIsGreaterThanZero_ShouldNotHaveValidationError(int validId)
         {
             // Arrange
-            var command = new DeleteGroupCommand(validId);
+            var command = new DeleteGroupCommand(Guid.NewGuid(), validId);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -36,7 +36,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Delete
         public void Validate_WhenIdIsZeroOrNegative_ShouldHaveValidationError(int invalidId)
         {
             // Arrange
-            var command = new DeleteGroupCommand(invalidId);
+            var command = new DeleteGroupCommand(Guid.NewGuid(), invalidId);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -44,6 +44,13 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Delete
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Id)
                 .WithErrorMessage("A valid group Id must be provided.");
+        }
+
+        [Fact]
+        public void Validate_WhenUserIdentityIsEmpty_ShouldHaveValidationError()
+        {
+            var result = _validator.TestValidate(new DeleteGroupCommand(Guid.Empty, 1));
+            result.ShouldHaveValidationErrorFor(command => command.UserId);
         }
     }
 }

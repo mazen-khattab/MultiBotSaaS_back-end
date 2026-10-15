@@ -13,14 +13,22 @@ namespace SaaS.Application.Features.Scrapes.Commands.Cancel
     public class CancelScrapeCommandHandler : IRequestHandler<CancelScrapeCommand, ApiResponse<bool>>
     {
         private readonly IAppDbContext _context;
+        private readonly IUserBotService _userBotService;   
 
-        public CancelScrapeCommandHandler(IAppDbContext context)
+        public CancelScrapeCommandHandler(IAppDbContext context, IUserBotService userBotService)
         {
             _context = context;
+            _userBotService = userBotService;
         }
 
         public async Task<ApiResponse<bool>> Handle(CancelScrapeCommand request, CancellationToken cancellationToken)
         {
+            var hasOwnership = await _userBotService.CheckOwnershipAsync(request.UserId, request.ScrapeId, cancellationToken);
+            if (!hasOwnership)
+            {
+                return ApiResponse<bool>.Failure("User or bot not found.", ErrorType.Unauthorized);
+            }
+
             var scrape = await _context.Scrapes
                 .FirstOrDefaultAsync(candidate => candidate.Id == request.ScrapeId && candidate.UserId == request.UserId, cancellationToken);
 
@@ -39,7 +47,8 @@ namespace SaaS.Application.Features.Scrapes.Commands.Cancel
 
             if (scrape.AccountId.HasValue)
             {
-                var account = await _context.ConnectedAccounts.FirstOrDefaultAsync(a => a.Id == scrape.AccountId.Value, cancellationToken);
+                var account = await _context.ConnectedAccounts.FirstOrDefaultAsync(a => a.Id == scrape.AccountId.Value &&
+                    a.UserId == request.UserId && a.BotId == scrape.BotId, cancellationToken);
                 if (account != null && string.Equals(account.Status, AccountStatus.BUSY.ToDbString(), StringComparison.OrdinalIgnoreCase))
                 {
                     account.Status = AccountStatus.ACTIVE.ToDbString();

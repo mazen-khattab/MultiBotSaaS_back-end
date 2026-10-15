@@ -135,7 +135,7 @@ namespace SaaS.Api.Controllers.v1
         [HttpPut("{id}")]
         public async Task<ActionResult<object>> Update(int id, [FromBody] UpdateGroupDto requestDto)
         {
-            var command = new UpdateGroupCommand(id, requestDto);
+            var command = new UpdateGroupCommand(GetUserId(), id, requestDto);
             var result = await _sender.Send(command);
 
             if (result is not null && result.IsSuccess)
@@ -166,7 +166,7 @@ namespace SaaS.Api.Controllers.v1
         [HttpDelete("{id}")]
         public async Task<ActionResult<object>> Delete(int id)
         {
-            var command = new DeleteGroupCommand(id);
+            var command = new DeleteGroupCommand(GetUserId(), id);
             var result = await _sender.Send(command);
 
             if (result is not null && result.IsSuccess)

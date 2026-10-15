@@ -28,6 +28,8 @@ namespace SaaS.Application.UnitTests.Features.Worker.Commands.DispatchMessaging
         {
             _encryptionServiceMock = new Mock<IEncryptionService>();
             _userBotServiceMock = new Mock<IUserBotService>();
+            _userBotServiceMock.Setup(service => service.CheckOwnershipAsync(It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
             _networkClientMock = new Mock<INetworkClient>();
             _loggerMock = new Mock<ILogger<DispatchMessagingJobCommandHandler>>();
         }

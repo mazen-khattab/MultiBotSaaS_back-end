@@ -14,6 +14,22 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
 {
     public class UpdateGroupCommandHandlerTests
     {
+        [Fact]
+        public async Task Handle_WhenGroupBelongsToAnotherUser_ShouldNotUpdateIt()
+        {
+            using var dbContext = CreateDbContext();
+            var group = new TargetGroup { Id = 1, UserId = Guid.NewGuid(), GroupName = "Other group" };
+            dbContext.TargetGroups.Add(group);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+
+            var result = await new UpdateGroupCommandHandler(dbContext).Handle(new UpdateGroupCommand(Guid.NewGuid(), 1,
+                new UpdateGroupDto("Changed", "https://example.com", "{}", false, null)), CancellationToken.None);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ErrorType.NotFound, result.ErrorType);
+            Assert.Equal("Other group", (await dbContext.TargetGroups.FindAsync(1))!.GroupName);
+        }
+
         private MockAppDbContext CreateDbContext()
         {
             var options = new DbContextOptionsBuilder<MockAppDbContext>()
@@ -30,7 +46,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
             using var dbContext = CreateDbContext();
             var handler = new UpdateGroupCommandHandler(dbContext);
             var dto = new UpdateGroupDto("New Name", "https://example.com/new", "{}", true, null);
-            var command = new UpdateGroupCommand(999, dto);
+            var command = new UpdateGroupCommand(Guid.NewGuid(), 999, dto);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -62,7 +78,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
 
             var handler = new UpdateGroupCommandHandler(dbContext);
             var dto = new UpdateGroupDto("Updated Name", "https://example.com/updated", "{\"setting\": 2}", false, "cursor_123");
-            var command = new UpdateGroupCommand(group.Id, dto);
+            var command = new UpdateGroupCommand(group.UserId, group.Id, dto);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);

@@ -54,7 +54,7 @@ public class SingleActiveSessionMiddleware
 
             if (currentDbSessionToken == null || currentDbSessionToken != tokenSessionClaim)
             {
-                _logger.LogWarning("Session token mismatch or expired for user ID: {UserId}. Current DB session token: {CurrentDbSessionToken}, Token from claim: {TokenSessionClaim}", userId, currentDbSessionToken, tokenSessionClaim);
+                _logger.LogWarning("Session token mismatch or expired for user ID: {UserId}.", userId);
 
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";

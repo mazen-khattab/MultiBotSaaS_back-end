@@ -42,15 +42,11 @@ namespace SaaS.Application.Features.Worker.Commands.DispatchMessaging
             _logger.LogInformation("Starting DispatchMessagingJob for UserId: {UserId}, BotId: {BotId} with {LeadCount} leads.",
                 request.UserId, request.BotId, request.LeadIds?.Count ?? 0);
 
-            //// Ownership check
-            //_logger.LogDebug("Checking ownership of BotId: {BotId} for UserId: {UserId}", request.BotId, request.UserId);
-            //var hasBot = await _userBotService.CheckOwnershipAsync(request.UserId, request.BotId, cancellationToken);
-
-            //if (!hasBot)
-            //{
-            //    _logger.LogWarning("Ownership check failed for UserId: {UserId}, BotId: {BotId}.", request.UserId, request.BotId);
-            //    return ApiResponse<DispatchMessagingResultDto>.Failure("User or bot not found", ErrorType.NotFound);
-            //}
+            var hasBot = await _userBotService.CheckOwnershipAsync(request.UserId, request.BotId, cancellationToken);
+            if (!hasBot)
+            {
+                return ApiResponse<DispatchMessagingResultDto>.Failure("User or bot not found", ErrorType.NotFound);
+            }
 
             // Check for existing processing job
             var processingStatus = JobStatus.PROCESSING.ToDbString();
@@ -80,7 +76,7 @@ namespace SaaS.Application.Features.Worker.Commands.DispatchMessaging
             _logger.LogDebug("Fetching active connected account for UserId: {UserId}, AccountId: {AccountId}", request.UserId, request.AccountId);
             var account = await _dbContext.ConnectedAccounts
                 .Include(a => a.Cookie)
-                .FirstOrDefaultAsync(a => a.UserId == request.UserId && a.Id == request.AccountId && a.IsActive, cancellationToken);
+                .FirstOrDefaultAsync(a => a.UserId == request.UserId && a.Id == request.AccountId && a.BotId == request.BotId && a.IsActive, cancellationToken);
 
             if (account is null)
             {

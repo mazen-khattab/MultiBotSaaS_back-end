@@ -19,6 +19,8 @@ internal sealed class SqliteAppDbContext : AppDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        // SQL Server generates rowversion values; SQLite needs an insert default for job HTTP tests.
+        modelBuilder.Entity<SaaS.Domain.Entities.Job>().Property(job => job.RowVersion).HasDefaultValueSql("randomblob(8)");
         // Preserve defaults, constraints and relationships while adapting SQL Server syntax.
         foreach (var property in modelBuilder.Model.GetEntityTypes().SelectMany(entity => entity.GetProperties()))
         {

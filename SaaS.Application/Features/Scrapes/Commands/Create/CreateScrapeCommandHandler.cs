@@ -65,7 +65,7 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
             var account = await _context.ConnectedAccounts
                 .Include(a => a.Cookie)
                 .Include(a => a.Bot)
-                .FirstOrDefaultAsync(a => a.Id == connectedAccountId && a.UserId == userId, cancellationToken);
+                .FirstOrDefaultAsync(a => a.Id == connectedAccountId && a.UserId == userId && a.BotId == botId && a.IsActive, cancellationToken);
 
             if (account is null)
             {
@@ -104,9 +104,10 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
             }
 
             _logger.LogDebug("Loading target group. TargetGroupId: {TargetGroupId}", targetGroupId);
+
             var group = await _context.TargetGroups
                 .AsNoTracking()
-                .AnyAsync(g => g.Id == targetGroupId && g.UserId == userId, cancellationToken);
+                .AnyAsync(g => g.Id == targetGroupId && g.UserId == userId && g.BotId == botId, cancellationToken);
 
             // Return NotFound if the request already GroupId that not exit in the DB
             if (!group && targetGroupId > 0)

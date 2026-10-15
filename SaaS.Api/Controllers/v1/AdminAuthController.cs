@@ -105,7 +105,7 @@ namespace SaaS.Api.Controllers.v1
         /// Get the currently authenticated admin's profile.
         /// </summary>
         [HttpGet("me")]
-        [Authorize]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<ActionResult<AuthLoginResponseDto>> GetMe()
         {
             var adminIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -147,7 +147,7 @@ namespace SaaS.Api.Controllers.v1
         /// Cookie cleanup is handled inside command/token generator.
         /// </summary>
         [HttpPost("logout")]
-        [Authorize]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Logout()
         {
             var adminIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);

@@ -96,10 +96,18 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
                 }
 
                 var nextAvailableTime = lastScrape.EndedAt.Value.AddMinutes(account.Bot!.CooldownMinutes);
-                if (DateTime.UtcNow < nextAvailableTime)
+                var timeRemaining = nextAvailableTime - DateTime.UtcNow;
+                _logger.LogInformation("Time remaining: {Time}", timeRemaining);
+
+                if (timeRemaining.TotalSeconds > 0)
                 {
                     _logger.LogWarning("Scrape creation blocked due to cooldown. UserId: {UserId}, BotId: {BotId}, NextAvailable: {NextAvailable}", userId, botId, nextAvailableTime);
-                    return ApiResponse<int>.Failure($"Cooldown active. You can start a new scrape after {nextAvailableTime:g} UTC.", ErrorType.TooManyRequests);
+
+                    var hours = (int)timeRemaining.TotalHours;
+                    var minutes = timeRemaining.Minutes;
+                    var timeString = hours > 0 ? $"{hours} hours and {minutes} minutes" : $"{minutes} minutes";
+
+                    return ApiResponse<int>.Failure($"Cooldown active. You can start a new scrape in {timeString}.", ErrorType.TooManyRequests);
                 }
             }
 
@@ -107,46 +115,51 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
 
             var group = await _context.TargetGroups
                 .AsNoTracking()
-                .AnyAsync(g => g.Id == targetGroupId && g.UserId == userId && g.BotId == botId, cancellationToken);
+                .FirstOrDefaultAsync(g => g.Id == targetGroupId && g.UserId == userId && g.BotId == botId, cancellationToken);
 
             // Return NotFound if the request already GroupId that not exit in the DB
-            if (!group && targetGroupId > 0)
+            if (group == null && targetGroupId > 0)
             {
                 _logger.LogWarning("Target group was not found. TargetGroupId: {TargetGroupId}", targetGroupId);
                 return ApiResponse<int>.Failure("Target group not found.", ErrorType.NotFound);
             }
-            _logger.LogDebug("Connected account and target group loaded successfully. ConnectedAccountId: {ConnectedAccountId}, TargetGroupId: {TargetGroupId}", 
+            _logger.LogDebug("Connected account and target group loaded successfully. ConnectedAccountId: {ConnectedAccountId}, TargetGroupId: {TargetGroupId}",
                 connectedAccountId, targetGroupId);
 
             _logger.LogDebug("Fetch user company info for UserId: {UserId}", userId);
-            var companyInfo = await _context.UserSettings
+            var userSettings = await _context.UserSettings
                 .AsNoTracking()
-                .Select(us => new {
+                .Select(us => new
+                {
                     us.UserId,
                     us.CompanyName,
                     us.CompanyPitch,
+                    us.AIApiKeyEncrypted,
+                    us.ScraperApiTokenEncrypted,
                     us.AIApiKeyExpirationDate,
                     us.ScraperApiTokenExpirationDate
                 })
                 .FirstOrDefaultAsync(us => us.UserId == userId, cancellationToken);
 
-            if (companyInfo is null || string.IsNullOrEmpty(companyInfo.CompanyName) || string.IsNullOrEmpty(companyInfo.CompanyPitch))
+            if (
+                userSettings is null ||
+                string.IsNullOrEmpty(userSettings.CompanyName) ||
+                string.IsNullOrEmpty(userSettings.CompanyPitch) ||
+                string.IsNullOrEmpty(userSettings.AIApiKeyEncrypted) ||
+                string.IsNullOrEmpty(userSettings.ScraperApiTokenEncrypted))
             {
                 _logger.LogWarning("The compnay info is missing or not complete for UserId: {UserId} --- CompandyName: {CompanyName}, CompanyPitch: {CompanyPitch}",
-                    userId, companyInfo?.CompanyName ?? "No company name", companyInfo?.CompanyPitch ?? "No company pitch");
+                    userId, userSettings?.CompanyName ?? "No company name", userSettings?.CompanyPitch ?? "No company pitch");
                 return ApiResponse<int>.Failure("Some user settings is missing.", ErrorType.NotFound);
             }
 
-            if (companyInfo.AIApiKeyExpirationDate <= DateTime.UtcNow || companyInfo.ScraperApiTokenExpirationDate <= DateTime.UtcNow)
+            if (userSettings.AIApiKeyExpirationDate <= DateTime.UtcNow || userSettings.ScraperApiTokenExpirationDate <= DateTime.UtcNow)
             {
                 _logger.LogWarning("API keys have expired for UserId: {UserId}", userId);
                 return ApiResponse<int>.Failure("API Keys have expired. Please renew them.", ErrorType.Unauthorized);
             }
 
             _logger.LogDebug("Decrypting cookies for connected account. ConnectedAccountId: {ConnectedAccountId}", connectedAccountId);
-            // Decrypt cookies
-            var encrypted = account.Cookie?.EncryptedCookies ?? string.Empty;
-            var decryptedCookies = _encryptionService.Decrypt(encrypted);
 
             // Check expiry using stored expire date
             var expireDate = account.Cookie?.CookiesExpireDate ?? DateTime.MinValue;
@@ -155,6 +168,12 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
                 _logger.LogWarning("Cookies have expired. ConnectedAccountId: {ConnectedAccountId}, ExpireDate: {ExpireDate}", connectedAccountId, expireDate);
                 return ApiResponse<int>.Failure("Your account cookies has been expired. Pls refresh it.", ErrorType.ValidationError);
             }
+
+            // Decrypt cookies
+            var encryptedCookies = account.Cookie?.EncryptedCookies ?? string.Empty;
+            var decryptedAIApiKey = _encryptionService.Decrypt(userSettings.AIApiKeyEncrypted);
+            var decryptedScrapeKey = _encryptionService.Decrypt(userSettings.ScraperApiTokenEncrypted);
+            var decryptedCookies = _encryptionService.Decrypt(encryptedCookies);
 
             // Create scrape entity and persist initial state
             var scrape = new Scrape
@@ -193,13 +212,19 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
                 var payload = new
                 {
                     ScrapeId = scrape.Id,
+                    GroupId = group?.Id ?? 0,
+                    AccountId = account.Id,
                     Cookies = decryptedCookies,
                     Info = infoElement,
-                    companyInfo.CompanyName,
-                    companyInfo.CompanyPitch,
+                    GroupUrl = group?.GroupUrl ?? string.Empty,
+                    GroupName = group?.GroupName ?? string.Empty,
+                    AIApiKey = decryptedAIApiKey,
+                    ScrapeKey = decryptedScrapeKey,
+                    userSettings.CompanyName,
+                    userSettings.CompanyPitch,
                 };
 
-                _logger.LogInformation("Sending scrape payload to external system. ScrapeId: {ScrapeId}, ExternalSystem: {ExternalSystem}", 
+                _logger.LogInformation("Sending scrape payload to external system. ScrapeId: {ScrapeId}, ExternalSystem: {ExternalSystem}",
                     scrape.Id, ExternalSystem.N8n);
 
                 // 2. Make External HTTP Call
@@ -213,15 +238,16 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to dispatch scrape to external system. ScrapeId: {ScrapeId}", scrape.Id);
-                
+
                 // 3. Compensation: Mark as failed if dispatch fails
                 scrape.Status = ScrapeStatus.FAILED.ToDbString();
+                scrape.EndedAt = DateTime.UtcNow;
 
                 account.Status = AccountStatus.ACTIVE.ToDbString();
                 account.LastStatusUpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync(cancellationToken);
-                
+
                 return ApiResponse<int>.Failure("Failed to dispatch scrape to external system.", ErrorType.ServerError);
             }
 

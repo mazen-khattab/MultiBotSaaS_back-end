@@ -23,7 +23,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var result = await new UpdateGroupCommandHandler(dbContext).Handle(new UpdateGroupCommand(Guid.NewGuid(), 1,
-                new UpdateGroupDto("Changed", "https://example.com", "{}", false, null)), CancellationToken.None);
+                new UpdateGroupDto("Changed", "https://example.com", "{}", false)), CancellationToken.None);
 
             Assert.False(result.IsSuccess);
             Assert.Equal(ErrorType.NotFound, result.ErrorType);
@@ -45,7 +45,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
             // Arrange
             using var dbContext = CreateDbContext();
             var handler = new UpdateGroupCommandHandler(dbContext);
-            var dto = new UpdateGroupDto("New Name", "https://example.com/new", "{}", true, null);
+            var dto = new UpdateGroupDto("New Name", "https://example.com/new", "{}", true);
             var command = new UpdateGroupCommand(Guid.NewGuid(), 999, dto);
 
             // Act
@@ -77,7 +77,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new UpdateGroupCommandHandler(dbContext);
-            var dto = new UpdateGroupDto("Updated Name", "https://example.com/updated", "{\"setting\": 2}", false, "cursor_123");
+            var dto = new UpdateGroupDto("Updated Name", "https://example.com/updated", "{\"setting\": 2}", false);
             var command = new UpdateGroupCommand(group.UserId, group.Id, dto);
 
             // Act

@@ -77,7 +77,7 @@ public sealed class ClientAuthorizationApiTests : AuthorizationApiTestBase
     {
         object body = resource == "connectedaccounts"
             ? new UpdateConnectedAccountDto("Changed", "Facebook", "{}", "Active", true)
-            : new UpdateGroupDto("Changed", "https://example.test/changed", "{}", false, null);
+            : new UpdateGroupDto("Changed", "https://example.test/changed", "{}", false);
         using var response = await Send(method, $"/api/v1/{resource}/{suffix}?userId={UserB}", body, AccessCookie(UserA));
         await Error(response, 404);
         await WithDb(async db =>
@@ -114,7 +114,7 @@ public sealed class ClientAuthorizationApiTests : AuthorizationApiTestBase
         }, AccessCookie(UserA));
         int groupId = (await SuccessData(group)).GetInt32();
         using var updateGroup = await Send("PUT", $"/api/v1/targetgroups/{groupId}",
-            new UpdateGroupDto("Edited", "https://example.test/edited", "{}", false, "cursor"), AccessCookie(UserA));
+            new UpdateGroupDto("Edited", "https://example.test/edited", "{}", false), AccessCookie(UserA));
         await SuccessData(updateGroup);
         await WithDb(async db => Assert.Equal(UserA, (await db.TargetGroups.FindAsync(groupId))!.UserId));
         using var deleteGroup = await Send("DELETE", $"/api/v1/targetgroups/{groupId}", cookie: AccessCookie(UserA));

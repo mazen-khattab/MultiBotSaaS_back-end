@@ -13,21 +13,14 @@ namespace SaaS.Application.Features.Scrapes.Commands.Cancel
     public class CancelScrapeCommandHandler : IRequestHandler<CancelScrapeCommand, ApiResponse<bool>>
     {
         private readonly IAppDbContext _context;
-        private readonly IUserBotService _userBotService;   
 
-        public CancelScrapeCommandHandler(IAppDbContext context, IUserBotService userBotService)
+        public CancelScrapeCommandHandler(IAppDbContext context)
         {
             _context = context;
-            _userBotService = userBotService;
         }
 
         public async Task<ApiResponse<bool>> Handle(CancelScrapeCommand request, CancellationToken cancellationToken)
         {
-            var hasOwnership = await _userBotService.CheckOwnershipAsync(request.UserId, request.ScrapeId, cancellationToken);
-            if (!hasOwnership)
-            {
-                return ApiResponse<bool>.Failure("User or bot not found.", ErrorType.Unauthorized);
-            }
 
             var scrape = await _context.Scrapes
                 .FirstOrDefaultAsync(candidate => candidate.Id == request.ScrapeId && candidate.UserId == request.UserId, cancellationToken);

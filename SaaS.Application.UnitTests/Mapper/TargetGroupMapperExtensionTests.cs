@@ -156,8 +156,7 @@ namespace SaaS.Application.UnitTests.Mapper
                 GroupName: "Updated Name",
                 GroupUrl: "https://new.url",
                 ConfigJson: "{\"setting\": false}",
-                IsActive: true,
-                LastCursor: "new-cursor"
+                IsActive: true
             );
 
             // Act
@@ -178,7 +177,7 @@ namespace SaaS.Application.UnitTests.Mapper
         {
             // Arrange
             TargetGroup nullGroup = null!;
-            var updateDto = new UpdateGroupDto("Name", "Url", "{}", true, null);
+            var updateDto = new UpdateGroupDto("Name", "Url", "{}", true);
 
             // Act
             var act = () => nullGroup.FromDto(updateDto);

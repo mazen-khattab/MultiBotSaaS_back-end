@@ -51,7 +51,6 @@ namespace SaaS.Application.Mapper
             targetGroup.GroupUrl = groupDto.GroupUrl;
             targetGroup.IsActive = groupDto.IsActive;
             targetGroup.ConfigJson = targetGroup.ConfigJson;
-            targetGroup.LastCursor = targetGroup.LastCursor;
 
             return targetGroup;
         }

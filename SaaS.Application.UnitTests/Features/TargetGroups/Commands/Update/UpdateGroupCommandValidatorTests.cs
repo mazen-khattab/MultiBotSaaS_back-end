@@ -21,7 +21,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
         public void Validate_WhenIdIsGreaterThanZero_ShouldNotHaveValidationError(int validId)
         {
             // Arrange
-            var dto = new UpdateGroupDto("Name", "https://example.com", "{}", true, null);
+            var dto = new UpdateGroupDto("Name", "https://example.com", "{}", true);
             var command = new UpdateGroupCommand(Guid.NewGuid(), validId, dto);
 
             // Act
@@ -38,7 +38,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
         public void Validate_WhenIdIsZeroOrNegative_ShouldHaveValidationError(int invalidId)
         {
             // Arrange
-            var dto = new UpdateGroupDto("Name", "https://example.com", "{}", true, null);
+            var dto = new UpdateGroupDto("Name", "https://example.com", "{}", true);
             var command = new UpdateGroupCommand(Guid.NewGuid(), invalidId, dto);
 
             // Act
@@ -53,7 +53,7 @@ namespace SaaS.Application.UnitTests.Features.TargetGroups.Commands.Update
         public void Validate_WhenUserIdentityIsEmpty_ShouldHaveValidationError()
         {
             var result = _validator.TestValidate(new UpdateGroupCommand(Guid.Empty, 1,
-                new UpdateGroupDto("Name", "https://example.com", "{}", true, null)));
+                new UpdateGroupDto("Name", "https://example.com", "{}", true)));
             result.ShouldHaveValidationErrorFor(command => command.UserId);
         }
     }

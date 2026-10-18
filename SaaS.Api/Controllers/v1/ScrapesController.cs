@@ -90,7 +90,7 @@ namespace SaaS.Api.Controllers.v1
         /// <summary>
         /// Cancel a currently running scrape.
         /// </summary>
-        [HttpPost("{id}/cancel")]
+        [HttpPut("{id}/cancel")]
         [Authorize]
         public async Task<ActionResult<object>> Cancel(int id)
         {

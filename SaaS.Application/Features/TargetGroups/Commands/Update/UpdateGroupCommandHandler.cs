@@ -12,22 +12,14 @@ namespace SaaS.Application.Features.TargetGroups.Commands.Update
     public class UpdateGroupCommandHandler : IRequestHandler<UpdateGroupCommand, ApiResponse<bool>>
     {
         private readonly IAppDbContext _context;
-        private readonly IUserBotService _userBotService;
 
-        public UpdateGroupCommandHandler(IAppDbContext context, IUserBotService userBotService)
+        public UpdateGroupCommandHandler(IAppDbContext context)
         {
             _context = context;
-            _userBotService = userBotService;
         }
 
         public async Task<ApiResponse<bool>> Handle(UpdateGroupCommand request, CancellationToken cancellationToken)
         {
-            var hasOwnership = await _userBotService.CheckOwnershipAsync(request.UserId, request.Id, cancellationToken);
-            if(!hasOwnership)
-            {
-                return ApiResponse<bool>.Failure("User or bot not found", ErrorType.Unauthorized);
-            }
-
             var entity = await _context.TargetGroups.FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId, cancellationToken);
 
             if (entity == null)

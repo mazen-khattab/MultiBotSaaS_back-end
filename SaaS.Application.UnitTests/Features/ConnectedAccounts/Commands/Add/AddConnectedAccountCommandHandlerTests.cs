@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using SaaS.Application.Common.Dtos;
@@ -34,8 +34,10 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Add
             return new MockAppDbContext(options);
         }
 
-        [Fact]
-        public async Task Handle_WhenBotOwnershipExists_CreatesAccountAndReturnsSuccess()
+        [Theory]
+        [InlineData("Scraping")]
+        [InlineData("Messaging")]
+        public async Task Handle_WhenBotOwnershipExists_CreatesAccountAndReturnsSuccess(string type)
         {
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
@@ -51,7 +53,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Add
                 .ReturnsAsync(true);
 
             var handler = new AddConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object, _userBotServiceMock.Object);
-            var dto = new AddConnectedAccountDto(botId, "Marketing Account", "Facebook", plainCookies);
+            var dto = new AddConnectedAccountDto(botId, "Marketing Account", "Facebook", plainCookies, type);
             var command = new AddConnectedAccountCommand(userId, dto);
 
             // Act
@@ -70,6 +72,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Add
             savedAccount.Should().NotBeNull();
             savedAccount!.DisplayName.Should().Be("Marketing Account");
             savedAccount.Platform.Should().Be("Facebook");
+            savedAccount.Type.Should().Be(type);
             savedAccount.IsActive.Should().BeTrue();
             savedAccount.Cookie.Should().NotBeNull();
             savedAccount.Cookie.EncryptedCookies.Should().Be(encryptedCookies);
@@ -88,7 +91,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Add
                 .ReturnsAsync(false);
 
             var handler = new AddConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object, _userBotServiceMock.Object);
-            var dto = new AddConnectedAccountDto(botId, "Account", "Facebook", "{\"cookie\":\"abc\"}");
+            var dto = new AddConnectedAccountDto(botId, "Account", "Facebook", "{\"cookie\":\"abc\"}", "Scraping");
             var command = new AddConnectedAccountCommand(userId, dto);
 
             // Act
@@ -119,7 +122,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Add
                 .ReturnsAsync(true);
 
             var handler = new AddConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object, _userBotServiceMock.Object);
-            var dto = new AddConnectedAccountDto(botId, "No Cookie Account", "LinkedIn", emptyCookies!);
+            var dto = new AddConnectedAccountDto(botId, "No Cookie Account", "LinkedIn", emptyCookies!, "Scraping");
             var command = new AddConnectedAccountCommand(userId, dto);
 
             // Act

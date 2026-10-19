@@ -8,6 +8,7 @@ using SaaS.Application.Common.Interfaces;
 using SaaS.Application.Common.Models;
 using SaaS.Domain.Entities;
 using SaaS.Domain.Enums;
+using SaaS.Domain.Extensions;
 
 namespace SaaS.Application.Features.ConnectedAccounts.Commands.Add
 {
@@ -47,6 +48,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Add
                 BotId = accountInfo.BotId,
                 DisplayName = accountInfo.DisplayName,
                 Platform = accountInfo.Platform,
+                Type = accountInfo.Type.ParseFromDbToAccountType().ToDbString(),
                 IsActive = true,
                 Cookie = new ConnectedAccountCookie
                 {

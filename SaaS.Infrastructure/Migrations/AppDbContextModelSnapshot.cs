@@ -150,6 +150,13 @@ namespace SaaS.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Scraping");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 

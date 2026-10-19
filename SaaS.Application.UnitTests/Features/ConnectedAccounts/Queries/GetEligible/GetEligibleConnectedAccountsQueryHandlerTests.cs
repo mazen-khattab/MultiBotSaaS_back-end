@@ -32,8 +32,10 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
             return new MockAppDbContext(options);
         }
 
-        [Fact]
-        public async Task Handle_WhenUserDoesNotOwnBot_ShouldReturnNotFound()
+        [Theory]
+        [InlineData(AccountType.SCRAPING)]
+        [InlineData(AccountType.MESSAGING)]
+        public async Task Handle_WhenUserDoesNotOwnBot_ShouldReturnNotFound(AccountType type)
         {
             // Arrange
             using var dbContext = CreateDbContext();
@@ -46,15 +48,17 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
             var handler = new GetEligibleConnectedAccountsQueryHandler(dbContext, _userBotServiceMock.Object);
 
             // Act
-            var result = await handler.Handle(new GetEligibleConnectedAccountsQuery(userId, botId), CancellationToken.None);
+            var result = await handler.Handle(new GetEligibleConnectedAccountsQuery(userId, botId, type), CancellationToken.None);
 
             // Assert
             Assert.False(result.IsSuccess);
             Assert.Equal(ErrorType.NotFound, result.ErrorType);
         }
 
-        [Fact]
-        public async Task Handle_WhenEligibleAccountsExist_ShouldReturnThem()
+        [Theory]
+        [InlineData(AccountType.SCRAPING)]
+        [InlineData(AccountType.MESSAGING)]
+        public async Task Handle_WhenEligibleAccountsExist_ShouldReturnThem(AccountType type)
         {
             // Arrange
             using var dbContext = CreateDbContext();
@@ -71,6 +75,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
                 UserId = userId,
                 BotId = botId,
                 DisplayName = "Eligible Account",
+                Type = type.ToDbString(),
                 Platform = "Facebook",
                 IsActive = true,
                 Status = AccountStatus.ACTIVE.ToDbString(),
@@ -89,6 +94,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
                 UserId = userId,
                 BotId = botId,
                 DisplayName = "Busy Account",
+                Type = type.ToDbString(),
                 Platform = "Facebook",
                 IsActive = true,
                 Status = AccountStatus.BUSY.ToDbString(),
@@ -107,6 +113,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
                 UserId = userId,
                 BotId = botId,
                 DisplayName = "Inactive Account",
+                Type = type.ToDbString(),
                 Platform = "Facebook",
                 IsActive = false,
                 Status = AccountStatus.ACTIVE.ToDbString(),
@@ -125,6 +132,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
                 UserId = userId,
                 BotId = botId,
                 DisplayName = "Expired Account",
+                Type = type.ToDbString(),
                 Platform = "Facebook",
                 IsActive = true,
                 Status = AccountStatus.ACTIVE.ToDbString(),
@@ -136,13 +144,30 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
                 }
             };
 
-            await dbContext.ConnectedAccounts.AddRangeAsync(eligibleAccount, busyAccount, inactiveAccount, expiredAccount);
+            var otherTypeAccount = new ConnectedAccount
+            {
+                Id = 5,
+                UserId = userId,
+                BotId = botId,
+                DisplayName = "Other Type Account",
+                Type = (type == AccountType.SCRAPING ? AccountType.MESSAGING : AccountType.SCRAPING).ToDbString(),
+                IsActive = true,
+                Status = AccountStatus.ACTIVE.ToDbString(),
+                Cookie = new ConnectedAccountCookie
+                {
+                    AccountId = 5,
+                    EncryptedCookies = "valid_cookie",
+                    CookiesExpireDate = DateTime.UtcNow.AddDays(7)
+                }
+            };
+
+            await dbContext.ConnectedAccounts.AddRangeAsync(eligibleAccount, busyAccount, inactiveAccount, expiredAccount, otherTypeAccount);
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new GetEligibleConnectedAccountsQueryHandler(dbContext, _userBotServiceMock.Object);
 
             // Act
-            var result = await handler.Handle(new GetEligibleConnectedAccountsQuery(userId, botId), CancellationToken.None);
+            var result = await handler.Handle(new GetEligibleConnectedAccountsQuery(userId, botId, type), CancellationToken.None);
 
             // Assert
             Assert.True(result.IsSuccess);
@@ -150,11 +175,14 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
             Assert.Single(result.Data);
             Assert.Equal(1, result.Data[0].Id);
             Assert.Equal("Eligible Account", result.Data[0].DisplayName);
+            Assert.Equal(type.ToDbString(), result.Data[0].Type);
             Assert.True(result.Data[0].IsActive);
         }
 
-        [Fact]
-        public async Task Handle_WhenNoEligibleAccountsExist_ShouldReturnEmptyList()
+        [Theory]
+        [InlineData(AccountType.SCRAPING)]
+        [InlineData(AccountType.MESSAGING)]
+        public async Task Handle_WhenNoEligibleAccountsExist_ShouldReturnEmptyList(AccountType type)
         {
             // Arrange
             using var dbContext = CreateDbContext();
@@ -167,7 +195,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
             var handler = new GetEligibleConnectedAccountsQueryHandler(dbContext, _userBotServiceMock.Object);
 
             // Act
-            var result = await handler.Handle(new GetEligibleConnectedAccountsQuery(userId, botId), CancellationToken.None);
+            var result = await handler.Handle(new GetEligibleConnectedAccountsQuery(userId, botId, type), CancellationToken.None);
 
             // Assert
             Assert.True(result.IsSuccess);

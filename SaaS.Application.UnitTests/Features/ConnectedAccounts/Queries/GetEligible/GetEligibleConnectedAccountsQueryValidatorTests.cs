@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using SaaS.Application.Features.ConnectedAccounts.Queries.GetEligible;
+using SaaS.Domain.Enums;
 using System;
 using Xunit;
 
@@ -14,17 +15,29 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Queries.GetEligi
             _validator = new GetEligibleConnectedAccountsQueryValidator();
         }
 
-        [Fact]
-        public void Validate_WhenQueryIsValid_ShouldNotHaveAnyValidationErrors()
+        [Theory]
+        [InlineData(AccountType.SCRAPING)]
+        [InlineData(AccountType.MESSAGING)]
+        public void Validate_WhenQueryIsValid_ShouldNotHaveAnyValidationErrors(AccountType type)
         {
             // Arrange
-            var query = new GetEligibleConnectedAccountsQuery(Guid.NewGuid(), 1);
+            var query = new GetEligibleConnectedAccountsQuery(Guid.NewGuid(), 1, type);
 
             // Act
             var result = _validator.TestValidate(query);
 
             // Assert
             result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact]
+        public void Validate_WhenTypeIsUndefined_ShouldHaveValidationError()
+        {
+            var query = new GetEligibleConnectedAccountsQuery(Guid.NewGuid(), 1, (AccountType)999);
+
+            var result = _validator.TestValidate(query);
+
+            result.ShouldHaveValidationErrorFor(x => x.Type);
         }
 
         [Fact]

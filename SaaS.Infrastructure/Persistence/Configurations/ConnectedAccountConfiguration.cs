@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SaaS.Domain.Entities;
+using SaaS.Domain.Enums;
+using SaaS.Domain.Extensions;
 
 namespace SaaS.Infrastructure.Persistence.Configurations;
 
@@ -22,6 +24,11 @@ public class ConnectedAccountConfiguration : IEntityTypeConfiguration<ConnectedA
         builder.Property(x => x.Platform)
             .HasMaxLength(20)
             .IsRequired();
+
+        builder.Property(ca => ca.Type)
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValue(AccountType.SCRAPING.ToDbString());
 
         //builder.Property(ca => ca.CookiesEncrypted)
         //    .IsRequired()

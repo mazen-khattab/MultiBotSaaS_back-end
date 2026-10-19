@@ -13,6 +13,7 @@ namespace SaaS.Domain.Entities
         public int BotId { get; set; }
         public string DisplayName { get; set; } = string.Empty;
         public string Platform { get; set; } = string.Empty;
+        public string Type { get; set; } = AccountType.SCRAPING.ToDbString();
         public bool IsActive { get; set; } = true;
         
         // Status: "Active", "Busy", "CoolingDown", "AccountFlagged", "Banned"

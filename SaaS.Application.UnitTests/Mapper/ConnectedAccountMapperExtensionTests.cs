@@ -18,8 +18,10 @@ namespace SaaS.Application.UnitTests.Mapper
             _encryptionServiceMock = new Mock<IEncryptionService>();
         }
 
-        [Fact]
-        public void ToDto_ValidAccount_MapsAllPropertiesCorrectly()
+        [Theory]
+        [InlineData("Scraping")]
+        [InlineData("Messaging")]
+        public void ToDto_ValidAccount_MapsAllPropertiesCorrectly(string type)
         {
             // Arrange
             var expireDate = new DateTime(2026, 12, 31, 23, 59, 59, DateTimeKind.Utc);
@@ -27,6 +29,7 @@ namespace SaaS.Application.UnitTests.Mapper
             {
                 Id = 42,
                 DisplayName = "Test Account",
+                Type = type,
                 Platform = "Facebook",
                 IsActive = true,
                 Cookie = new ConnectedAccountCookie
@@ -44,6 +47,7 @@ namespace SaaS.Application.UnitTests.Mapper
             dto.Id.Should().Be(42);
             dto.DisplayName.Should().Be("Test Account");
             dto.Platform.Should().Be("Facebook");
+            dto.Type.Should().Be(type);
             dto.ExpiredAt.Should().Be(expireDate);
             dto.IsActive.Should().BeTrue();
         }
@@ -127,8 +131,10 @@ namespace SaaS.Application.UnitTests.Mapper
                 .WithParameterName("accounts");
         }
 
-        [Fact]
-        public void ToDetailsDto_ValidAccount_MapsAllPropertiesAndMasksCookies()
+        [Theory]
+        [InlineData("Scraping")]
+        [InlineData("Messaging")]
+        public void ToDetailsDto_ValidAccount_MapsAllPropertiesAndMasksCookies(string type)
         {
             // Arrange
             var expireDate = new DateTime(2026, 12, 31, 23, 59, 59, DateTimeKind.Utc);
@@ -142,6 +148,7 @@ namespace SaaS.Application.UnitTests.Mapper
             {
                 Id = 10,
                 DisplayName = "Details Account",
+                Type = type,
                 Platform = "Twitter",
                 IsActive = true,
                 Cookie = new ConnectedAccountCookie
@@ -160,6 +167,7 @@ namespace SaaS.Application.UnitTests.Mapper
             detailsDto.Id.Should().Be(10);
             detailsDto.DisplayName.Should().Be("Details Account");
             detailsDto.Platform.Should().Be("Twitter");
+            detailsDto.Type.Should().Be(type);
             detailsDto.ExpiredAt.Should().Be(expireDate);
             detailsDto.IsActive.Should().BeTrue();
             detailsDto.RelatedLeadsCount.Should().Be(25);

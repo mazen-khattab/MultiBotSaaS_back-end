@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using SaaS.Application.Common.Dtos;
@@ -32,8 +32,10 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             return new MockAppDbContext(options);
         }
 
-        [Fact]
-        public async Task Handle_WhenAccountExistsAndCookiesProvided_UpdatesAccountAndCookies()
+        [Theory]
+        [InlineData("Scraping")]
+        [InlineData("Messaging")]
+        public async Task Handle_WhenAccountExistsAndCookiesProvided_UpdatesAccountAndCookies(string type)
         {
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
@@ -42,6 +44,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             {
                 UserId = userId,
                 DisplayName = "Old Display Name",
+                Type = type == "Scraping" ? "Messaging" : "Scraping",
                 Platform = "Facebook",
                 IsActive = false,
                 Cookie = new ConnectedAccountCookie
@@ -59,7 +62,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
                 .Returns(newEncryptedCookies);
 
             var handler = new UpdateConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object);
-            var dto = new UpdateConnectedAccountDto("New Display Name", "Instagram", newRawCookies, "Active", true);
+            var dto = new UpdateConnectedAccountDto("New Display Name", "Instagram", newRawCookies, "Active", true, type);
             var command = new UpdateConnectedAccountCommand(userId, account.Id, dto);
 
             // Act
@@ -78,6 +81,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             updatedAccount.Should().NotBeNull();
             updatedAccount!.DisplayName.Should().Be("New Display Name");
             updatedAccount.Platform.Should().Be("Instagram");
+            updatedAccount.Type.Should().Be(type);
             updatedAccount.IsActive.Should().BeTrue();
             updatedAccount.Cookie.EncryptedCookies.Should().Be(newEncryptedCookies);
             updatedAccount.Cookie.CookiesExpireDate.Should().BeCloseTo(DateTime.UtcNow.AddDays(7), TimeSpan.FromSeconds(5));
@@ -109,7 +113,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             await dbContext.SaveChangesAsync(CancellationToken.None);
 
             var handler = new UpdateConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object);
-            var dto = new UpdateConnectedAccountDto("Updated Name", "LinkedIn", emptyCookies!, "Active", false);
+            var dto = new UpdateConnectedAccountDto("Updated Name", "LinkedIn", emptyCookies!, "Active", false, "Scraping");
             var command = new UpdateConnectedAccountCommand(userId, account.Id, dto);
 
             // Act
@@ -137,7 +141,7 @@ namespace SaaS.Application.UnitTests.Features.ConnectedAccounts.Commands.Update
             // Arrange
             using var dbContext = CreateInMemoryDbContext();
             var handler = new UpdateConnectedAccountCommandHandler(dbContext, _encryptionServiceMock.Object);
-            var dto = new UpdateConnectedAccountDto("Name", "Platform", "cookies", "Active", true);
+            var dto = new UpdateConnectedAccountDto("Name", "Platform", "cookies", "Active", true, "Scraping");
             var command = new UpdateConnectedAccountCommand(Guid.NewGuid(), 999, dto);
 
             // Act

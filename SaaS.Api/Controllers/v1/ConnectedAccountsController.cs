@@ -13,6 +13,7 @@ using SaaS.Application.Features.ConnectedAccounts.Queries.GetAll;
 using SaaS.Application.Features.ConnectedAccounts.Queries.GetById;
 using SaaS.Application.Features.ConnectedAccounts.Queries.GetEligible;
 using SaaS.Domain.Entities;
+using SaaS.Domain.Enums;
 using System.Security.Claims;
 
 namespace SaaS.Api.Controllers.v1
@@ -33,6 +34,7 @@ namespace SaaS.Api.Controllers.v1
 
         /// <summary>
         /// Create a new connected account.
+        /// Type must be "Scraping" or "Messaging".
         /// Maps the request to CreateConnectedAccountCommand and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;T&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
@@ -65,38 +67,21 @@ namespace SaaS.Api.Controllers.v1
         }
 
         /// <summary>
-        /// Get eligible active connected accounts for a specific bot.
+        /// Get eligible active scraping accounts for a specific bot.
         /// </summary>
-        [HttpGet("eligible/{botId}")]
-        public async Task<ActionResult<object>> GetEligible([FromRoute] int botId)
-        {
-            var userId = GetUserId();
+        [HttpGet("eligible/scraping/{botId}")]
+        public Task<ActionResult<object>> GetEligible([FromRoute] int botId) => GetEligibleByType(botId, AccountType.SCRAPING);
 
-            var query = new GetEligibleConnectedAccountsQuery(userId, botId);
-            var result = await _sender.Send(query);
+        /// <summary>
+        /// Get eligible active messaging accounts for a specific bot.
+        /// </summary>
+        [HttpGet("eligible/messaging/{botId}")]
+        public Task<ActionResult<object>> GetEligibleMessaging([FromRoute] int botId) => GetEligibleByType(botId, AccountType.MESSAGING);
 
-            if (result is not null && result.IsSuccess)
-            {
-                return Ok(result);
-            }
-
-            int statusCode = result?.ErrorType.ToHttpStatusCode() ?? StatusCodes.Status404NotFound;
-
-            var errorResponse = new ApiErrorResponse
-            {
-                IsSuccess = false,
-                StatusCode = statusCode,
-                Message = result?.Message ?? "Failure during operation.",
-                Path = HttpContext.Request.Path,
-                Method = HttpContext.Request.Method,
-                TraceId = HttpContext.TraceIdentifier
-            };
-
-            return StatusCode(statusCode, errorResponse);
-        }
 
         /// <summary>
         /// Get all connected accounts.
+        /// Each account includes its Type ("Scraping" or "Messaging").
         /// Maps to GetAllConnectedAccountsQuery and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;IEnumerable&lt;T&gt;&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
@@ -130,6 +115,7 @@ namespace SaaS.Api.Controllers.v1
 
         /// <summary>
         /// Get connected account details by id.
+        /// The returned details include Type ("Scraping" or "Messaging").
         /// Maps to GetConnectedAccountByIdQuery and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;T&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
@@ -163,6 +149,7 @@ namespace SaaS.Api.Controllers.v1
 
         /// <summary>
         /// Update a connected account by id.
+        /// Type must be "Scraping" or "Messaging".
         /// Maps the request to UpdateConnectedAccountCommand and forwards to MediatR.
         /// Returns Ok(ApiResponse&lt;T&gt;) on success or a mapped ApiErrorResponse on failure.
         /// </summary>
@@ -213,6 +200,33 @@ namespace SaaS.Api.Controllers.v1
             }
 
             int statusCode = result!.ErrorType.ToHttpStatusCode();
+
+            var errorResponse = new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result?.Message ?? "Failure during operation.",
+                Path = HttpContext.Request.Path,
+                Method = HttpContext.Request.Method,
+                TraceId = HttpContext.TraceIdentifier
+            };
+
+            return StatusCode(statusCode, errorResponse);
+        }
+
+        private async Task<ActionResult<object>> GetEligibleByType(int botId, AccountType type)
+        {
+            var userId = GetUserId();
+
+            var query = new GetEligibleConnectedAccountsQuery(userId, botId, type);
+            var result = await _sender.Send(query);
+
+            if (result is not null && result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            int statusCode = result?.ErrorType.ToHttpStatusCode() ?? StatusCodes.Status404NotFound;
 
             var errorResponse = new ApiErrorResponse
             {

@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using SaaS.Domain.Enums;
+using SaaS.Domain.Extensions;
 
 namespace SaaS.Application.Features.ConnectedAccounts.Commands.Add
 {
@@ -24,6 +26,12 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Add
 
             RuleFor(x => x.AccountDto.CookiesPayload)
                 .Must(IsValidJson).WithMessage("CookiesPayload must be valid JSON.");
+
+            RuleFor(x => x.AccountDto.Type)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty().WithMessage("Type is required.")
+                .Must(type => Enum.GetValues<AccountType>().Any(value => value.ToDbString() == type))
+                .WithMessage("Type must be a valid AccountType (Scraping or Messaging).");
         }
 
         private bool IsValidJson(string json)

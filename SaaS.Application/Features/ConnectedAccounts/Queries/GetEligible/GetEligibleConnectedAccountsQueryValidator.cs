@@ -13,6 +13,9 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetEligible
 
             RuleFor(x => x.BotId)
                 .GreaterThan(0).WithMessage("BotId must be greater than 0.");
+
+            RuleFor(x => x.Type)
+                .IsInEnum().WithMessage("Type must be a valid AccountType.");
         }
     }
 }

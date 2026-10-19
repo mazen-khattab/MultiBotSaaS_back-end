@@ -38,6 +38,7 @@ namespace SaaS.Application.Features.ConnectedAccounts.Commands.Update
 
             entity.DisplayName = accountInfo.DisplayName;
             entity.Platform = accountInfo.Platform;
+            entity.Type = accountInfo.Type.ParseFromDbToAccountType().ToDbString();
             entity.IsActive = accountInfo.IsActive;
             entity.Status = accountInfo.Status.ParseFromDbToAccountStatus().ToDbString();
 

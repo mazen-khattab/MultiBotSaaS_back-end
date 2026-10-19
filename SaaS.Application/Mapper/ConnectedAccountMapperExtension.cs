@@ -19,6 +19,7 @@ namespace SaaS.Application.Mapper
                     Id: account.Id,
                     DisplayName: account.DisplayName,
                     Platform: account.Platform,
+                    Type: account.Type,
                     ExpiredAt: account.Cookie.CookiesExpireDate,
                     IsActive: account.IsActive
                 );
@@ -43,6 +44,7 @@ namespace SaaS.Application.Mapper
                 DisplayName: account.DisplayName,
                 MaskedCookies: Helper.MaskValue(account.Cookie.EncryptedCookies, encryptionService),
                 Platform: account.Platform,
+                Type: account.Type,
                 ExpiredAt: account.Cookie.CookiesExpireDate,
                 IsActive: account.IsActive,
                 Status: account.Status,

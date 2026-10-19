@@ -18,8 +18,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddFrontendCors(builder.Configuration, builder.Environment);
-
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -52,6 +50,8 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 });
 
 builder.Services.AddMediatRWithValidation();
+
+builder.Services.AddFrontendCors(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

@@ -34,12 +34,14 @@ namespace SaaS.Application.Features.ConnectedAccounts.Queries.GetEligible
             }
 
             var activeDbString = AccountStatus.ACTIVE.ToDbString();
+            var typeDbString = request.Type.ToDbString();
 
             var accounts = await _context.ConnectedAccounts
                 .AsNoTracking()
                 .Include(a => a.Cookie)
                 .Where(a => a.UserId == request.UserId &&
                             a.BotId == request.BotId &&
+                            a.Type == typeDbString &&
                             a.IsActive &&
                             a.Status == activeDbString &&
                             a.Cookie != null &&

@@ -76,7 +76,7 @@ public sealed class ClientAuthorizationApiTests : AuthorizationApiTestBase
     public async Task ForeignAccountAndGroup_ReadUpdateDeleteAreNotFoundAndDoNotMutate(string method, string resource, string suffix)
     {
         object body = resource == "connectedaccounts"
-            ? new UpdateConnectedAccountDto("Changed", "Facebook", "{}", "Active", true)
+            ? new UpdateConnectedAccountDto("Changed", "Facebook", "{}", "Active", true, "Scraping")
             : new UpdateGroupDto("Changed", "https://example.test/changed", "{}", false);
         using var response = await Send(method, $"/api/v1/{resource}/{suffix}?userId={UserB}", body, AccessCookie(UserA));
         await Error(response, 404);
@@ -92,7 +92,7 @@ public sealed class ClientAuthorizationApiTests : AuthorizationApiTestBase
     {
         using var account = await Send("POST", "/api/v1/connectedaccounts", new
         {
-            botId = 1, displayName = "Created account", platform = "Facebook", cookiesPayload = CookiesPayload, userId = UserB
+            botId = 1, displayName = "Created account", platform = "Facebook", cookiesPayload = CookiesPayload, type = "Scraping", userId = UserB
         }, AccessCookie(UserA));
         await SuccessData(account);
         int accountId = 0;
@@ -103,7 +103,7 @@ public sealed class ClientAuthorizationApiTests : AuthorizationApiTestBase
             accountId = stored.Id;
         });
         using var updateAccount = await Send("PUT", $"/api/v1/connectedaccounts/{accountId}",
-            new UpdateConnectedAccountDto("Edited", "Facebook", CookiesPayload, "Active", true), AccessCookie(UserA));
+            new UpdateConnectedAccountDto("Edited", "Facebook", CookiesPayload, "Active", true, "Messaging"), AccessCookie(UserA));
         await SuccessData(updateAccount);
         using var deleteAccount = await Send("DELETE", $"/api/v1/connectedaccounts/{accountId}", cookie: AccessCookie(UserA));
         await SuccessData(deleteAccount);

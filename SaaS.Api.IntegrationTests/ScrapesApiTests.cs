@@ -243,19 +243,31 @@ public sealed class ScrapesApiTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Complete_WithWebhookSecret_PersistsLeadScrapeIdAndNotifiesCompletion()
+    public async Task Complete_WithWebhookSecret_PersistsLeadDetailsAndNotifiesCompletion()
     {
         await SeedScrapes();
+        const string metadata = "{\"bio\":\"Consultant\",\"comments\":[\"Interested\"]}";
         using var response = await Send(HttpMethod.Post, $"{Route}/101/complete", null,
-            new CompleteScrapeDto([new ScrapedLeadDto("profile-123", "lead", "Test Lead", "Hello", "{}")]), WebhookSecret);
+            new CompleteScrapeDto([
+                new ScrapedLeadDto("profile-123", "lead", "Test Lead", "Hello", metadata),
+                new ScrapedLeadDto("profile-456", "other-lead", "Other Lead", "Hi", "{}")
+            ]), WebhookSecret);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         await WithDb(async db =>
         {
-            var lead = Assert.Single(await db.Leads.Include(lead => lead.Scrape).ToListAsync());
-            Assert.Equal(101, lead.ScrapeId);
-            Assert.Equal("Completed", lead.Scrape!.Status);
+            var leads = await db.Leads.Include(lead => lead.Scrape).ToListAsync();
+            var details = await db.LeadDetails.AsNoTracking().ToListAsync();
+            Assert.Equal(2, leads.Count);
+            Assert.Equal(2, details.Count);
+            foreach (var lead in leads)
+            {
+                Assert.Equal(101, lead.ScrapeId);
+                Assert.Equal("Completed", lead.Scrape!.Status);
+                var detail = Assert.Single(details, candidate => candidate.LeadId == lead.Id);
+                Assert.Equal(lead.ExternalId == "profile-123" ? metadata : "{}", detail.MetaDataJson);
+            }
         });
-        _notifications.Verify(service => service.NotifyScrapeCompletedAsync(_userId, 101, 1), Times.Once);
+        _notifications.Verify(service => service.NotifyScrapeCompletedAsync(_userId, 101, 2), Times.Once);
     }
 
     [Theory]

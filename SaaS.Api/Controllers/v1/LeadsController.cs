@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SaaS.Api.Extensions;
+using SaaS.Application.Common.Dtos;
 using SaaS.Application.Common.Models;
+using SaaS.Application.Features.Leads.Commands.RemoveLead;
+using SaaS.Application.Features.Leads.Commands.UpdateLead;
 using SaaS.Application.Features.Leads.Queries.GetAllLeads;
 using SaaS.Application.Features.Leads.Queries.GetAllowedPendingLeads;
 using SaaS.Application.Features.Leads.Queries.GetLeadById;
@@ -26,7 +29,8 @@ namespace SaaS.Api.Controllers.v1
         private Guid GetUserId() => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : Guid.Empty;
 
         [HttpGet("{leadId:long}")]
-        public async Task<ActionResult<object>> GetById(long leadId, CancellationToken cancellationToken)
+        [HttpGet("LeadDetails/{leadId:long}")]
+        public async Task<ActionResult<object>> LeadDetails(long leadId, CancellationToken cancellationToken)
         {
             var userId = GetUserId();
             if (userId == Guid.Empty)
@@ -53,6 +57,57 @@ namespace SaaS.Api.Controllers.v1
             };
 
             return StatusCode(statusCode, errorResponse);
+        }
+
+        [HttpDelete("RemoveLead/{leadId:long}")]
+        public async Task<ActionResult<object>> RemoveLead(long leadId, CancellationToken cancellationToken)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized();
+
+            // Only the authenticated identity establishes ownership; the client supplies just the lead ID.
+            var result = await _sender.Send(new RemoveLeadCommand(userId, leadId), cancellationToken);
+            if (result.IsSuccess)
+                return Ok(result);
+
+            var statusCode = result.ErrorType.ToHttpStatusCode();
+            return StatusCode(statusCode, new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result.Message,
+                Path = HttpContext.Request.Path,
+                Method = HttpContext.Request.Method,
+                TraceId = HttpContext.TraceIdentifier
+            });
+        }
+
+        /// <summary>Update the current user's lead using only the editable lead fields.</summary>
+        [HttpPut("UpdateLead/{leadId:long}")]
+        public async Task<ActionResult<object>> UpdateLead(long leadId, [FromBody] UpdateLeadDto leadDto,
+            CancellationToken cancellationToken)
+        {
+            // The controller's Authorize attribute requires authentication; claims establish ownership.
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized();
+
+            // MediatR runs UpdateLeadCommandValidator before UpdateLeadCommandHandler.
+            var result = await _sender.Send(new UpdateLeadCommand(userId, leadId, leadDto), cancellationToken);
+            if (result.IsSuccess)
+                return Ok(result);
+
+            var statusCode = result.ErrorType.ToHttpStatusCode();
+            return StatusCode(statusCode, new ApiErrorResponse
+            {
+                IsSuccess = false,
+                StatusCode = statusCode,
+                Message = result.Message,
+                Path = HttpContext.Request.Path,
+                Method = HttpContext.Request.Method,
+                TraceId = HttpContext.TraceIdentifier
+            });
         }
 
         [HttpGet("leads/{botId}")]

@@ -71,26 +71,37 @@ namespace SaaS.Application.Features.Scrapes.Commands.Complete
                     var newUniqueLeadsDto = request.Leads
                         .Where(l => !string.IsNullOrWhiteSpace(l.ExternalId) && !existingIds.Contains(l.ExternalId));
 
-                    newLeads = newUniqueLeadsDto.Select(dto => new Lead
+                    var newLeadDetails = new List<LeadDetail>();
+                    foreach (var dto in newUniqueLeadsDto)
                     {
-                        UserId = scrape.UserId,
-                        BotId = scrape.BotId,
-                        ExternalId = dto.ExternalId!,
-                        GroupId = scrape.GroupId,
-                        AccountId = scrape.AccountId,
-                        ScrapeId = scrape.Id,
-                        ProfileName = dto.ProfileName ?? string.Empty,
-                        ProfileUrl = dto.ProfileUrl ?? string.Empty,
-                        AiMessage = dto.AiMessage ?? string.Empty,
-                        Status = LeadStatus.PENDING.ToDbString(),
-                        CreatedAt = DateTime.UtcNow,
-                        Detail = new LeadDetail { MetaDataJson = string.IsNullOrWhiteSpace(dto.MetadataJson) ? "{}" : dto.MetadataJson }
-                    }).ToList();
+                        var lead = new Lead
+                        {
+                            UserId = scrape.UserId,
+                            BotId = scrape.BotId,
+                            ExternalId = dto.ExternalId!,
+                            GroupId = scrape.GroupId,
+                            AccountId = scrape.AccountId,
+                            ScrapeId = scrape.Id,
+                            ProfileName = dto.ProfileName ?? string.Empty,
+                            ProfileUrl = dto.ProfileUrl ?? string.Empty,
+                            AiMessage = dto.AiMessage ?? string.Empty,
+                            Status = LeadStatus.PENDING.ToDbString(),
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        newLeads.Add(lead);
+                        newLeadDetails.Add(new LeadDetail
+                        {
+                            // EF fills LeadId from the generated lead key when both rows are saved.
+                            Lead = lead,
+                            MetaDataJson = string.IsNullOrWhiteSpace(dto.MetadataJson) ? "{}" : dto.MetadataJson
+                        });
+                    }
 
                     if (newLeads.Any())
                     {
                         _logger.LogInformation("Persisting {NewLeadsCount} new unique leads for ScrapeId {ScrapeId}", newLeads.Count, scrape.Id);
                         await _context.Leads.AddRangeAsync(newLeads, cancellationToken);
+                        await _context.LeadDetails.AddRangeAsync(newLeadDetails, cancellationToken);
                     }
                     else
                     {

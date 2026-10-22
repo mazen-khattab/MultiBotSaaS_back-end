@@ -328,7 +328,7 @@ namespace SaaS.Infrastructure.Migrations
 
                     b.HasKey("LeadId");
 
-                    b.ToTable("Leads", (string)null);
+                    b.ToTable("LeadDetails", (string)null);
                 });
 
             modelBuilder.Entity("SaaS.Domain.Entities.Scrape", b =>

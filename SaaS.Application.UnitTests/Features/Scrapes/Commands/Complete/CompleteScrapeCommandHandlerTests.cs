@@ -243,15 +243,51 @@ namespace SaaS.Application.UnitTests.Features.Scrapes.Commands.Complete
             Assert.Equal(2, lead1.BotId);
             Assert.Equal(groupId, lead1.GroupId);
             Assert.Equal(accountId, lead1.AccountId);
-            Assert.Equal("User1", lead1.ProfileName);
-            Assert.Equal("ext-101", lead1.ProfileUrl);
+            Assert.Equal("Full Name 1", lead1.ProfileName);
+            Assert.Equal("User1", lead1.ProfileUrl);
             Assert.Equal("Ai message 1", lead1.AiMessage);
             Assert.Equal(LeadStatus.PENDING.ToDbString(), lead1.Status);
             Assert.NotNull(lead1.Detail);
             Assert.Equal("{\"city\":\"Cairo\"}", lead1.Detail.MetaDataJson);
 
+            var persistedDetails = await dbContext.LeadDetails.AsNoTracking().ToListAsync();
+            Assert.Equal(2, persistedDetails.Count);
+            foreach (var lead in persistedLeads)
+            {
+                var detail = Assert.Single(persistedDetails, candidate => candidate.LeadId == lead.Id);
+                Assert.Equal(incomingLeads.Single(dto => dto.ExternalId == lead.ExternalId).MetadataJson, detail.MetaDataJson);
+            }
+
             _notificationServiceMock.Verify(n =>
                 n.NotifyScrapeCompletedAsync(userId, scrape.Id, 2), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task Handle_WhenMetadataIsMissing_ShouldSaveEmptyObjectInLeadDetails(string? metadata)
+        {
+            using var dbContext = CreateDbContext();
+            var scrape = new Scrape
+            {
+                UserId = Guid.NewGuid(),
+                BotId = 1,
+                Status = ScrapeStatus.RUNNING.ToDbString()
+            };
+            dbContext.Scrapes.Add(scrape);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            var handler = new CompleteScrapeCommandHandler(dbContext, _notificationServiceMock.Object, _loggerMock.Object);
+
+            var result = await handler.Handle(new CompleteScrapeCommand(scrape.Id,
+                [new ScrapedLeadDto("profile-123", "https://example.test/profile", "Test Lead", "Hello", metadata!)]),
+                CancellationToken.None);
+
+            Assert.True(result.IsSuccess);
+            var lead = Assert.Single(await dbContext.Leads.AsNoTracking().ToListAsync());
+            var detail = Assert.Single(await dbContext.LeadDetails.AsNoTracking().ToListAsync());
+            Assert.Equal(lead.Id, detail.LeadId);
+            Assert.Equal("{}", detail.MetaDataJson);
         }
 
         [Fact]
@@ -311,6 +347,9 @@ namespace SaaS.Application.UnitTests.Features.Scrapes.Commands.Complete
             Assert.Contains(allLeads, l => l.ExternalId == "ext-existing" && l.Id == 100);
             Assert.Contains(allLeads, l => l.ExternalId == "ext-brand-new" && l.ScrapeId == scrape.Id);
 
+            var detail = Assert.Single(await dbContext.LeadDetails.AsNoTracking().ToListAsync());
+            Assert.Equal(allLeads.Single(lead => lead.ExternalId == "ext-brand-new").Id, detail.LeadId);
+
             _notificationServiceMock.Verify(n =>
                 n.NotifyScrapeCompletedAsync(userId, scrape.Id, 1), Times.Once);
         }
@@ -362,6 +401,8 @@ namespace SaaS.Application.UnitTests.Features.Scrapes.Commands.Complete
             var updatedScrape = await dbContext.Scrapes.FindAsync(scrape.Id);
             Assert.NotNull(updatedScrape);
             Assert.Equal(0, updatedScrape.CollectedLeadsCount);
+
+            Assert.Empty(await dbContext.LeadDetails.ToListAsync());
 
             _notificationServiceMock.Verify(n =>
                 n.NotifyScrapeCompletedAsync(userId, scrape.Id, 0), Times.Once);

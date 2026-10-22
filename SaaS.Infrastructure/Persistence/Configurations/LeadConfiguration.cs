@@ -8,10 +8,6 @@ public class LeadConfiguration : IEntityTypeConfiguration<Lead>
 {
     public void Configure(EntityTypeBuilder<Lead> builder)
     {
-        // Table splitting: Lead and LeadDetail are two entity classes mapped onto the
-        // SAME physical table ("Leads"). Both configuration classes must call ToTable
-        // with the identical name, and they share one primary key value
-        // (LeadDetail.LeadId == Lead.Id) so that both map to the same row.
         builder.ToTable("Leads");
 
         builder.HasKey(l => l.Id);
@@ -73,12 +69,11 @@ public class LeadConfiguration : IEntityTypeConfiguration<Lead>
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
-        // This is what actually makes the table split work: HasForeignKey<LeadDetail>
-        // tells EF that LeadDetail.LeadId is simultaneously LeadDetail's own primary
-        // key AND the value tying it to Lead.Id in the same row of the same table.
+        // LeadDetail shares the lead's key in a separate table and is deleted with it.
         builder.HasOne(l => l.Detail)
             .WithOne(ld => ld.Lead)
-            .HasForeignKey<LeadDetail>(ld => ld.LeadId);
+            .HasForeignKey<LeadDetail>(ld => ld.LeadId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(l => l.ProfileUrl)
             .HasDatabaseName("IX_Leads_ProfileUrl");

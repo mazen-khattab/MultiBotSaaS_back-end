@@ -69,7 +69,7 @@ namespace SaaS.Application.Features.Worker.Commands.DispatchMessaging
             if (apiKeysInfo != null && (apiKeysInfo.AIApiKeyExpirationDate <= DateTime.UtcNow || apiKeysInfo.ScraperApiTokenExpirationDate <= DateTime.UtcNow))
             {
                 _logger.LogWarning("API keys have expired for UserId: {UserId}", request.UserId);
-                return ApiResponse<DispatchMessagingResultDto>.Failure("API Keys have expired. Please renew them.", ErrorType.Unauthorized);
+                return ApiResponse<DispatchMessagingResultDto>.Failure("API Keys have expired. Please renew them.", ErrorType.BadRequest);
             }
 
             // Fetch active connected account for this bot and user including cookie

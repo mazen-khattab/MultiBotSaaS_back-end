@@ -156,7 +156,7 @@ namespace SaaS.Application.Features.Scrapes.Commands.Create
             if (userSettings.AIApiKeyExpirationDate <= DateTime.UtcNow || userSettings.ScraperApiTokenExpirationDate <= DateTime.UtcNow)
             {
                 _logger.LogWarning("API keys have expired for UserId: {UserId}", userId);
-                return ApiResponse<int>.Failure("API Keys have expired. Please renew them.", ErrorType.Unauthorized);
+                return ApiResponse<int>.Failure("API Keys have expired. Please renew them.", ErrorType.BadRequest);
             }
 
             _logger.LogDebug("Decrypting cookies for connected account. ConnectedAccountId: {ConnectedAccountId}", connectedAccountId);

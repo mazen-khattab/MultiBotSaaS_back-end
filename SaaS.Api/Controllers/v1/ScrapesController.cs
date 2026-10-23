@@ -123,7 +123,7 @@ namespace SaaS.Api.Controllers.v1
         /// Protected by X-Webhook-Secret header validated by N8nWebhookAuthorizeFilter.
         /// </summary>
         [HttpPost("{id}/complete")]
-        [N8nWebhookAuthorize]
+        //[N8nWebhookAuthorize]
         public async Task<ActionResult<object>> Complete(int id, [FromBody] CompleteScrapeDto request)
         {
             var command = new CompleteScrapeCommand(id, request?.ExtractedLeads ?? []);

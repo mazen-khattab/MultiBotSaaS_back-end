@@ -41,10 +41,16 @@ namespace SaaS.Application.Features.Settings.Commands.Manage
             if (setting != null)
             {
                 if (encryptedAiKey != null)
-                    setting.AIApiKeyEncrypted = encryptedAiKey; 
+                {
+                    setting.AIApiKeyEncrypted = encryptedAiKey;
+                    setting.AIApiKeyExpirationDate = DateTime.UtcNow.AddDays(7);
+                }
 
                 if (encryptedScraperToken != null)
+                {
                     setting.ScraperApiTokenEncrypted = encryptedScraperToken;
+                    setting.ScraperApiTokenExpirationDate = DateTime.UtcNow.AddDays(7);
+                }
 
                 setting.DailyMessageLimit = request.DailyLeadLimit;
 

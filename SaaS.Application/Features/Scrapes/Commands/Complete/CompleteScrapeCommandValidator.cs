@@ -7,6 +7,9 @@ namespace SaaS.Application.Features.Scrapes.Commands.Complete
     {
         public CompleteScrapeCommandValidator()
         {
+            RuleFor(x => x.ScrapeId)
+                .NotNull().WithMessage("Scrape id must be provided");
+
             RuleFor(x => x.Leads)
                 .NotNull().WithMessage("Leads list must be provided (can be empty).");
         }

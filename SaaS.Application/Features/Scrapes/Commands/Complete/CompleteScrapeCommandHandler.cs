@@ -48,7 +48,7 @@ namespace SaaS.Application.Features.Scrapes.Commands.Complete
             var newLeads = new List<Lead>();
 
             // Process leads only if there are any
-            if (request.Leads.Any())
+            if (request.Leads!.Count > 0)
             {
                 var incomingIds = request.Leads
                     .Select(x => x.ExternalId)
